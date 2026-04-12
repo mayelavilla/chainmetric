@@ -3,1251 +3,970 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chainmetric — On-Chain Analytics</title>
-<meta name="description" content="Chainmetric — Análisis on-chain, modelos de precio y AI Chart Studio para Bitcoin y criptomonedas.">
-<meta name="theme-color" content="#07090d">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 72 72'><rect x='22' y='22' width='28' height='28' rx='2.5' transform='rotate(45 36 36)' fill='none' stroke='%232DD4BF' stroke-width='2'/><rect x='28.5' y='28.5' width='15' height='15' rx='1.5' transform='rotate(45 36 36)' fill='%232DD4BF'/></svg>">
+<title>Chainmetric — App</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
 :root{
-  --bg:#07090d;--s1:#0c1018;--s2:#111820;--bd:#1c2535;
-  --tq:#2DD4BF;--tqa:rgba(45,212,191,0.12);
-  --text:#ddeae8;--muted:#3d5560;--gold:#f5c518;--red:#ff4560;
+  --bg:#07090d; --s1:#0c1018; --s2:#111820; --bd:#1c2535;
+  --tq:#2DD4BF; --tqa:rgba(45,212,191,0.12); --tqb:rgba(45,212,191,0.05);
+  --text:#ddeae8; --muted:#3d5560; --gold:#f5c518; --red:#ff4560; --purple:#a78bfa;
+  --sb-width:260px;
 }
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
-body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(circle,rgba(45,212,191,0.04) 1px,transparent 1px);background-size:44px 44px;pointer-events:none;z-index:0;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);height:100%;overflow:hidden;}
 
-/* NAV */
-nav{position:sticky;top:0;z-index:100;background:rgba(7,9,13,.97);backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:0 1.2rem;height:54px;}
-.logo{display:flex;align-items:center;gap:10px;}
-.logo-word{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#fff;letter-spacing:-.5px;}
+/* ── LAYOUT SHELL ── */
+.shell{display:flex;flex-direction:column;height:100vh;}
+
+/* ── TOP NAV ── */
+.topnav{
+  height:48px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 1rem;
+  background:rgba(7,9,13,0.98);
+  border-bottom:1px solid var(--bd);
+  z-index:200;
+}
+.nav-left{display:flex;align-items:center;gap:12px;}
+.nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none;}
+.logo-word{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#fff;letter-spacing:-.4px;}
 .logo-word span{color:var(--tq);}
-.live-badge{font-family:'DM Mono',monospace;font-size:.55rem;padding:3px 8px;border:1px solid var(--tq);color:var(--tq);border-radius:2px;background:var(--tqa);display:flex;align-items:center;gap:5px;}
+.nav-sep{width:1px;height:20px;background:var(--bd);}
+
+/* Section tabs in topnav */
+.nav-tabs{display:flex;gap:0;}
+.ntab{
+  font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.07em;
+  text-transform:uppercase;padding:0 .9rem;height:48px;line-height:48px;
+  color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;
+  background:none;border-top:none;border-left:none;border-right:none;
+  transition:color .18s,border-color .18s;white-space:nowrap;
+}
+.ntab:hover{color:var(--text);}
+.ntab.active{color:var(--tq);border-bottom-color:var(--tq);}
+
+.nav-right{display:flex;align-items:center;gap:.6rem;}
+.live-badge{font-family:'DM Mono',monospace;font-size:.52rem;padding:2px 7px;border:1px solid var(--tq);color:var(--tq);border-radius:2px;background:var(--tqa);display:flex;align-items:center;gap:4px;}
 .ldot{width:5px;height:5px;border-radius:50%;background:var(--tq);animation:blink 1.8s infinite;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
+.nav-user{display:flex;align-items:center;gap:6px;cursor:pointer;padding:4px 8px;border-radius:3px;transition:background .2s;}
+.nav-user:hover{background:var(--s2);}
+.user-avatar{width:24px;height:24px;border-radius:50%;background:var(--tqa);border:1px solid rgba(45,212,191,.25);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:.55rem;color:var(--tq);}
+.user-name{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted);}
+.user-plan{font-family:'DM Mono',monospace;font-size:.5rem;padding:1px 5px;border-radius:2px;background:var(--tqa);color:var(--tq);border:1px solid rgba(45,212,191,.2);}
+.nav-btn{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;padding:5px 12px;border-radius:3px;cursor:pointer;text-decoration:none;transition:all .18s;}
+.nav-btn.ghost{color:var(--muted);border:1px solid var(--bd);background:transparent;}
+.nav-btn.ghost:hover{color:var(--text);}
+.nav-btn.primary{color:#07090d;background:var(--tq);border:none;}
+.nav-btn.primary:hover{opacity:.85;}
 
-/* TABS */
-.tabs{display:flex;overflow-x:auto;border-bottom:1px solid var(--bd);background:var(--s1);scrollbar-width:none;position:sticky;top:54px;z-index:99;}
-.tabs::-webkit-scrollbar{display:none;}
-.tab{flex-shrink:0;font-family:'DM Mono',monospace;font-size:.6rem;letter-spacing:.07em;text-transform:uppercase;padding:.65rem 1rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;border-top:none;border-left:none;border-right:none;background:none;transition:all .2s;white-space:nowrap;}
-.tab.active{color:var(--tq);border-bottom-color:var(--tq);}
+/* ── MAIN CONTENT ── */
+.main{display:flex;flex:1;overflow:hidden;}
 
-/* WRAP */
-.wrap{position:relative;z-index:1;max-width:640px;margin:0 auto;padding:1rem 1rem 5rem;}
-.page{display:none;}.page.active{display:block;}
+/* ── SIDEBAR ── */
+.sidebar{
+  width:var(--sb-width);flex-shrink:0;
+  background:var(--s1);
+  border-right:1px solid var(--bd);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  transition:width .25s ease;
+}
+.sidebar.collapsed{width:0;border-right:none;}
 
-/* TICKER */
-.ticker{display:flex;overflow-x:auto;background:var(--s1);border:1px solid var(--bd);border-radius:6px;margin-bottom:1rem;scrollbar-width:none;}
-.ticker::-webkit-scrollbar{display:none;}
-.tick{flex-shrink:0;padding:.55rem .85rem;border-right:1px solid var(--bd);}
-.tick:last-child{border-right:none;}
-.tick-sym{font-family:'DM Mono',monospace;font-size:.52rem;color:var(--muted);}
-.tick-price{font-family:'DM Mono',monospace;font-size:.75rem;font-weight:500;}
-.tick-chg{font-family:'DM Mono',monospace;font-size:.58rem;}
-.up{color:var(--tq);}.dn{color:var(--red);}
+/* Search */
+.sb-search{padding:.7rem .8rem;border-bottom:1px solid var(--bd);}
+.search-wrap{display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--bd);border-radius:4px;padding:5px 9px;transition:border-color .2s;}
+.search-wrap:focus-within{border-color:rgba(45,212,191,.35);}
+.search-icon{flex-shrink:0;color:var(--muted);}
+.sb-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Mono',monospace;font-size:.65rem;caret-color:var(--tq);}
+.sb-input::placeholder{color:var(--muted);}
 
-/* CARD */
-.card{background:var(--s1);border:1px solid var(--bd);border-radius:8px;overflow:hidden;margin-bottom:1rem;}
-.card-hd{display:flex;align-items:flex-start;justify-content:space-between;padding:.85rem 1rem;border-bottom:1px solid var(--bd);}
-.card-title{font-size:.82rem;font-weight:500;margin-bottom:2px;}
-.card-sub{font-family:'DM Mono',monospace;font-size:.55rem;color:var(--muted);}
-.badge{font-family:'DM Mono',monospace;font-size:.5rem;padding:2px 7px;border-radius:2px;flex-shrink:0;}
-.badge-up{background:rgba(45,212,191,.1);color:var(--tq);border:1px solid rgba(45,212,191,.22);}
-.badge-dn{background:rgba(255,69,96,.1);color:var(--red);border:1px solid rgba(255,69,96,.22);}
-.badge-neu{background:rgba(245,197,24,.1);color:var(--gold);border:1px solid rgba(245,197,24,.22);}
+/* Categories */
+.sb-scroll{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--bd) transparent;}
+.sb-scroll::-webkit-scrollbar{width:3px;}
+.sb-scroll::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px;}
 
-/* METRICS */
-.mstrip{display:flex;overflow-x:auto;border-bottom:1px solid var(--bd);scrollbar-width:none;}
-.mstrip::-webkit-scrollbar{display:none;}
-.met{flex-shrink:0;padding:.5rem .8rem;border-right:1px solid var(--bd);}
-.met:last-child{border-right:none;}
-.met-l{font-family:'DM Mono',monospace;font-size:.5rem;color:var(--muted);text-transform:uppercase;margin-bottom:3px;}
-.met-v{font-family:'DM Mono',monospace;font-size:.78rem;font-weight:500;}
+.sb-cat{overflow:hidden;}
+.sb-cat-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.5rem .9rem;cursor:pointer;
+  transition:background .15s;
+  user-select:none;
+}
+.sb-cat-header:hover{background:rgba(255,255,255,.03);}
+.sb-cat-name{font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:500;}
+.sb-cat-arrow{font-size:.5rem;color:var(--muted);transition:transform .2s;}
+.sb-cat.open .sb-cat-arrow{transform:rotate(90deg);}
+.sb-cat-items{display:none;padding-bottom:.3rem;}
+.sb-cat.open .sb-cat-items{display:block;}
 
-/* TF */
-.tf{display:flex;gap:3px;padding:.5rem .8rem;border-bottom:1px solid var(--bd);}
-.tf-btn{flex:1;font-family:'DM Mono',monospace;font-size:.58rem;padding:4px;text-align:center;background:var(--s2);border:1px solid var(--bd);color:var(--muted);cursor:pointer;border-radius:3px;transition:all .18s;}
+.sb-item{
+  display:flex;align-items:flex-start;gap:8px;
+  padding:.42rem .9rem .42rem 1rem;
+  cursor:pointer;transition:background .14s;
+  position:relative;
+}
+.sb-item:hover{background:rgba(45,212,191,.04);}
+.sb-item.active{background:var(--tqa);}
+.sb-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--tq);}
+.sb-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.sb-info{flex:1;min-width:0;}
+.sb-name{font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted);display:block;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-item.active .sb-name{color:var(--tq);}
+.sb-desc{font-family:'DM Mono',monospace;font-size:.52rem;color:var(--muted);opacity:.6;line-height:1.4;display:block;}
+.sb-pro{font-family:'DM Mono',monospace;font-size:.44rem;padding:1px 5px;background:rgba(245,197,24,.1);color:var(--gold);border:1px solid rgba(245,197,24,.18);border-radius:2px;flex-shrink:0;margin-top:3px;}
+
+/* ── CHART PANEL ── */
+.chart-panel{
+  flex:1;display:flex;flex-direction:column;overflow:hidden;
+  background:var(--bg);
+}
+
+/* Chart header */
+.chart-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.65rem 1.2rem;
+  border-bottom:1px solid var(--bd);
+  background:var(--s1);
+  flex-shrink:0;
+  gap:.8rem;
+  flex-wrap:wrap;
+}
+.ch-left{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;}
+.chart-title-wrap{}
+.chart-metric-name{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:#fff;letter-spacing:-.3px;margin-bottom:1px;}
+.chart-metric-sub{font-family:'DM Mono',monospace;font-size:.55rem;color:var(--muted);}
+
+/* Overlay selects */
+.ctrl-group{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
+.ctrl-label{font-family:'DM Mono',monospace;font-size:.52rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;}
+.ctrl-select{
+  font-family:'DM Mono',monospace;font-size:.62rem;
+  background:var(--s2);border:1px solid var(--bd);color:var(--text);
+  padding:4px 8px;border-radius:3px;outline:none;cursor:pointer;
+  appearance:none;min-width:80px;
+}
+.ctrl-select:focus{border-color:rgba(45,212,191,.35);}
+
+/* TF buttons */
+.tf-group{display:flex;gap:3px;}
+.tf-btn{
+  font-family:'DM Mono',monospace;font-size:.6rem;
+  padding:4px 9px;background:var(--s2);border:1px solid var(--bd);
+  color:var(--muted);border-radius:3px;cursor:pointer;transition:all .15s;
+}
+.tf-btn:hover{color:var(--text);}
 .tf-btn.active{background:var(--tqa);color:var(--tq);border-color:rgba(45,212,191,.3);}
 
-/* CHART */
-.chart-body{padding:.8rem;}
-.chart-wrap{position:relative;}
+/* Scale toggle */
+.scale-group{display:flex;gap:2px;}
+.scale-btn{
+  font-family:'DM Mono',monospace;font-size:.58rem;
+  padding:4px 8px;background:var(--s2);border:1px solid var(--bd);
+  color:var(--muted);cursor:pointer;transition:all .15s;
+}
+.scale-btn:first-child{border-radius:3px 0 0 3px;}
+.scale-btn:last-child{border-radius:0 3px 3px 0;border-left:none;}
+.scale-btn.active{background:var(--tqa);color:var(--tq);border-color:rgba(45,212,191,.3);}
 
-/* LOADER */
-.loader{position:absolute;inset:0;background:rgba(7,9,13,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;z-index:10;border-radius:4px;transition:opacity .2s;}
-.loader.hide{opacity:0;pointer-events:none;}
-.spinner{width:24px;height:24px;border:2px solid var(--bd);border-top-color:var(--tq);border-radius:50%;animation:spin .8s linear infinite;}
+.ch-right{display:flex;align-items:center;gap:.5rem;}
+.icon-btn{
+  width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+  background:var(--s2);border:1px solid var(--bd);border-radius:3px;
+  cursor:pointer;color:var(--muted);transition:all .15s;
+}
+.icon-btn:hover{color:var(--tq);border-color:rgba(45,212,191,.3);}
+
+/* AI response bar */
+.ai-bar{
+  display:flex;align-items:flex-start;gap:8px;
+  padding:.65rem 1.2rem;
+  background:rgba(45,212,191,.025);
+  border-bottom:1px solid var(--bd);
+  flex-shrink:0;
+}
+.ai-av{
+  width:22px;height:22px;flex-shrink:0;
+  background:var(--tqa);border:1px solid rgba(45,212,191,.2);
+  border-radius:3px;display:flex;align-items:center;justify-content:center;
+}
+.ai-text{font-family:'DM Mono',monospace;font-size:.62rem;color:rgba(255,255,255,.55);line-height:1.7;}
+.ai-text strong{color:var(--tq);font-weight:500;}
+
+/* Metrics strip */
+.metrics-strip{
+  display:flex;gap:0;border-bottom:1px solid var(--bd);
+  overflow-x:auto;scrollbar-width:none;flex-shrink:0;
+}
+.metrics-strip::-webkit-scrollbar{display:none;}
+.met{flex-shrink:0;padding:.5rem .9rem;border-right:1px solid var(--bd);}
+.met:last-child{border-right:none;}
+.met-l{font-family:'DM Mono',monospace;font-size:.5rem;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:3px;}
+.met-v{font-family:'DM Mono',monospace;font-size:.82rem;font-weight:500;}
+
+/* Zone legend */
+.zone-bar{
+  display:flex;align-items:center;gap:.8rem;
+  padding:.4rem 1.2rem;border-bottom:1px solid var(--bd);
+  background:rgba(0,0,0,.1);flex-shrink:0;flex-wrap:wrap;
+}
+.zl{display:flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:.55rem;color:var(--muted);}
+.zd{width:8px;height:8px;border-radius:1px;flex-shrink:0;}
+
+/* Chart area */
+.chart-area{flex:1;padding:.8rem 1rem .6rem;overflow:hidden;position:relative;}
+.chart-canvas-wrap{position:relative;width:100%;height:100%;}
+
+/* Loader */
+.chart-loader{
+  position:absolute;inset:0;background:rgba(7,9,13,.85);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:10px;z-index:10;border-radius:4px;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.chart-loader.show{opacity:1;pointer-events:all;}
+.spinner{width:26px;height:26px;border:2px solid var(--bd);border-top-color:var(--tq);border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.loader-txt{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--tq);}
+.loader-txt{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--tq);letter-spacing:.1em;}
 
-/* AI RESP */
-.ai-resp{display:flex;gap:8px;padding:.7rem 1rem;background:rgba(45,212,191,.02);border-bottom:1px solid var(--bd);}
-.ai-av{width:22px;height:22px;flex-shrink:0;background:var(--tqa);border:1px solid rgba(45,212,191,.2);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;}
-.ai-txt{font-family:'DM Mono',monospace;font-size:.6rem;color:rgba(255,255,255,.55);line-height:1.65;}
-.ai-txt strong{color:var(--tq);}
+/* Source badge */
+.source-bar{
+  display:flex;align-items:center;gap:.5rem;
+  padding:.35rem 1.2rem;border-top:1px solid var(--bd);
+  background:rgba(0,0,0,.1);flex-shrink:0;
+}
+.src-txt{font-family:'DM Mono',monospace;font-size:.52rem;color:var(--muted);}
+.src-badge{font-family:'DM Mono',monospace;font-size:.5rem;padding:1px 6px;border-radius:2px;background:var(--tqa);color:var(--tq);border:1px solid rgba(45,212,191,.2);}
 
-/* METRIC GRID */
-.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;padding:.8rem;}
-.mi{background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:.7rem;}
-.mi-l{font-family:'DM Mono',monospace;font-size:.52rem;color:var(--muted);text-transform:uppercase;margin-bottom:5px;}
-.mi-v{font-family:'DM Mono',monospace;font-size:1rem;font-weight:500;margin-bottom:2px;}
-.mi-s{font-family:'DM Mono',monospace;font-size:.52rem;}
-.mi-bar{height:2px;background:var(--bd);border-radius:1px;margin-top:5px;}
-.mi-fill{height:100%;border-radius:1px;}
+/* ── SIDEBAR TOGGLE ── */
+.sb-toggle{
+  position:absolute;left:var(--sb-width);top:50%;transform:translateY(-50%);
+  width:16px;height:42px;
+  background:var(--s2);border:1px solid var(--bd);
+  border-left:none;border-radius:0 4px 4px 0;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--muted);z-index:50;
+  transition:left .25s ease,color .15s;font-size:.6rem;
+}
+.sb-toggle:hover{color:var(--tq);}
+.sidebar.collapsed ~ .sb-toggle{left:0;}
 
-/* SEC HERO */
-.sec-hero{padding:1rem 0 .7rem;}
-.sec-eye{font-family:'DM Mono',monospace;font-size:.56rem;letter-spacing:.22em;text-transform:uppercase;color:var(--tq);margin-bottom:.4rem;display:flex;align-items:center;gap:7px;}
-.sec-eye::before{content:'';width:14px;height:1px;background:var(--tq);}
-.sec-title{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;line-height:1.1;letter-spacing:-.8px;color:#fff;margin-bottom:.25rem;}
-.sec-title span{color:var(--tq);}
-.sec-sub{font-family:'DM Mono',monospace;font-size:.58rem;color:var(--muted);}
+/* ── PRO GATE ── */
+.pro-gate{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:1rem;padding:2rem;text-align:center;
+}
+.pg-icon{width:52px;height:52px;background:rgba(245,197,24,.1);border:1px solid rgba(245,197,24,.25);border-radius:8px;display:flex;align-items:center;justify-content:center;margin:0 auto;}
+.pg-title{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:#fff;}
+.pg-sub{font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted);line-height:1.65;max-width:280px;}
+.pg-btn{display:inline-block;font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;padding:9px 22px;background:var(--tq);color:#07090d;border-radius:3px;text-decoration:none;font-weight:500;transition:opacity .2s;}
+.pg-btn:hover{opacity:.85;}
 
-/* ZONE LEGEND */
-.zleg{display:flex;gap:8px;padding:.45rem .8rem;border-bottom:1px solid var(--bd);flex-wrap:wrap;}
-.zl{display:flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:.52rem;color:var(--muted);}
-.zl-dot{width:7px;height:7px;border-radius:1px;}
+/* ── AI STUDIO SPECIAL ── */
+.ai-studio-wrap{flex:1;display:flex;flex-direction:column;padding:1rem;gap:.8rem;overflow:hidden;}
+.ai-input-box{background:var(--s1);border:1px solid var(--bd);border-radius:6px;overflow:hidden;transition:border-color .3s;flex-shrink:0;}
+.ai-input-box:focus-within{border-color:rgba(45,212,191,.4);}
+.ai-input-top{display:flex;align-items:center;gap:8px;padding:.6rem .9rem;border-bottom:1px solid var(--bd);}
+.ai-chip{font-family:'DM Mono',monospace;font-size:.52rem;letter-spacing:.12em;text-transform:uppercase;padding:2px 7px;background:var(--tqa);color:var(--tq);border:1px solid rgba(45,212,191,.22);border-radius:2px;flex-shrink:0;}
+.ai-hint-txt{font-family:'DM Mono',monospace;font-size:.58rem;color:var(--muted);}
+.ai-textarea{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;resize:none;padding:.75rem .9rem;min-height:64px;caret-color:var(--tq);}
+.ai-textarea::placeholder{color:var(--muted);}
+.ai-bottom-bar{display:flex;align-items:center;justify-content:space-between;padding:.5rem .9rem;border-top:1px solid var(--bd);background:rgba(0,0,0,.15);gap:8px;}
+.ai-sugs{display:flex;gap:5px;flex-wrap:nowrap;overflow-x:auto;flex:1;scrollbar-width:none;}
+.ai-sugs::-webkit-scrollbar{display:none;}
+.ai-sug{font-family:'DM Mono',monospace;font-size:.55rem;color:var(--muted);padding:3px 8px;border:1px solid var(--bd);border-radius:2px;cursor:pointer;background:transparent;transition:all .15s;white-space:nowrap;}
+.ai-sug:hover{color:var(--tq);border-color:rgba(45,212,191,.3);}
+.ai-gen-btn{display:flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;background:var(--tq);color:#07090d;border:none;padding:7px 14px;border-radius:3px;cursor:pointer;font-weight:500;flex-shrink:0;transition:opacity .2s;}
+.ai-gen-btn:hover{opacity:.85;}
 
-/* COMP LEGEND */
-.comp-leg{display:flex;gap:.8rem;padding:.5rem 1rem;border-bottom:1px solid var(--bd);}
-.cl{display:flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:.55rem;color:var(--muted);}
-.cl-line{width:14px;height:2px;border-radius:1px;}
-
-/* DOM BARS */
-.dom-list{padding:.6rem .8rem;}
-.dom-item{display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem;}
-.dom-item:last-child{margin-bottom:0;}
-.dom-sym{font-family:'DM Mono',monospace;font-size:.62rem;font-weight:500;width:36px;}
-.dom-bw{flex:1;height:4px;background:var(--bd);border-radius:2px;overflow:hidden;}
-.dom-b{height:100%;border-radius:2px;}
-.dom-pct{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted);width:36px;text-align:right;}
-
-/* CYCLE PHASES */
-.phases{display:flex;margin:.8rem;border:1px solid var(--bd);border-radius:6px;overflow:hidden;}
-.phase{flex:1;padding:.55rem .3rem;text-align:center;border-right:1px solid var(--bd);}
-.phase:last-child{border-right:none;}
-.phase.active{background:var(--tqa);}
-.phase-n{font-family:'DM Mono',monospace;font-size:.9rem;font-weight:500;display:block;margin-bottom:2px;}
-.phase.active .phase-n{color:var(--tq);}
-.phase-l{font-family:'DM Mono',monospace;font-size:.44rem;color:var(--muted);text-transform:uppercase;line-height:1.3;}
-.phase.active .phase-l{color:rgba(45,212,191,.7);}
-
-/* AI STUDIO */
-.ai-box{background:var(--s1);border:1px solid var(--bd);border-radius:8px;overflow:hidden;margin-bottom:1rem;}
-.ai-box:focus-within{border-color:rgba(45,212,191,.4);}
-.ai-top{display:flex;align-items:center;gap:8px;padding:.6rem .9rem;border-bottom:1px solid var(--bd);}
-.ai-chip{font-family:'DM Mono',monospace;font-size:.52rem;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;background:var(--tqa);color:var(--tq);border:1px solid rgba(45,212,191,.2);border-radius:2px;}
-.ai-hint{font-family:'DM Mono',monospace;font-size:.56rem;color:var(--muted);}
-.ai-ta{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.85rem;resize:none;padding:.7rem .9rem;min-height:52px;caret-color:var(--tq);}
-.ai-ta::placeholder{color:var(--muted);}
-.ai-btm{display:flex;align-items:center;justify-content:space-between;padding:.5rem .9rem;border-top:1px solid var(--bd);background:rgba(0,0,0,.15);gap:7px;}
-.sugs{display:flex;gap:5px;overflow-x:auto;flex:1;scrollbar-width:none;}
-.sugs::-webkit-scrollbar{display:none;}
-.sug{font-family:'DM Mono',monospace;font-size:.52rem;color:var(--muted);padding:3px 7px;border:1px solid var(--bd);border-radius:2px;cursor:pointer;background:transparent;white-space:nowrap;flex-shrink:0;}
-.sug:hover{color:var(--tq);border-color:rgba(45,212,191,.3);}
-.gen-btn{display:flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.07em;text-transform:uppercase;background:var(--tq);color:#07090d;border:none;padding:7px 12px;border-radius:3px;cursor:pointer;font-weight:500;flex-shrink:0;}
-
-/* BETA BANNER */
-.beta-banner{background:rgba(45,212,191,.06);border:1px solid rgba(45,212,191,.2);border-radius:8px;padding:.8rem 1rem;margin-bottom:1rem;display:flex;align-items:center;gap:10px;}
-.beta-txt{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted);line-height:1.6;}
-.beta-txt strong{color:var(--tq);}
-
-/* TOP 10 TABLE */
-.top10-row{display:flex;align-items:center;gap:.5rem;padding:.55rem .9rem;border-bottom:1px solid var(--bd);cursor:pointer;transition:background .15s;}
-.top10-row:last-child{border-bottom:none;}
-.top10-row:hover{background:rgba(45,212,191,.03);}
-.top10-row.selected{background:rgba(45,212,191,.05);}
-.top10-rank{font-family:'DM Mono',monospace;font-size:.58rem;color:var(--muted);width:18px;text-align:center;flex-shrink:0;}
-.top10-icon{width:24px;height:24px;border-radius:50%;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;overflow:hidden;}
-.top10-icon img{width:100%;height:100%;border-radius:50%;}
-.top10-name{flex:1;min-width:0;}
-.top10-sym{font-family:'DM Mono',monospace;font-size:.65rem;font-weight:500;color:var(--text);}
-.top10-fullname{font-family:'DM Mono',monospace;font-size:.52rem;color:var(--muted);}
-.top10-spark{width:52px;height:24px;flex-shrink:0;}
-.top10-price{font-family:'DM Mono',monospace;font-size:.68rem;font-weight:500;color:var(--text);width:68px;text-align:right;flex-shrink:0;}
-.top10-chg{font-family:'DM Mono',monospace;font-size:.62rem;width:52px;text-align:right;flex-shrink:0;}
-.top10-mc{font-family:'DM Mono',monospace;font-size:.55rem;color:var(--muted);width:48px;text-align:right;flex-shrink:0;}
-
-/* COIN SELECTOR PILLS */
-.coin-pill{flex-shrink:0;display:flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:.58rem;padding:4px 9px;border-radius:20px;border:1px solid var(--bd);background:var(--s2);color:var(--muted);cursor:pointer;transition:all .18s;white-space:nowrap;}
-.coin-pill.active{border-color:rgba(45,212,191,.4);color:var(--tq);background:var(--tqa);}
-.coin-pill img{width:14px;height:14px;border-radius:50%;}
-
-/* MODEL TABS */
-.mtab{flex-shrink:0;font-family:'DM Mono',monospace;font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;padding:5px 11px;border-radius:3px;cursor:pointer;border:1px solid var(--bd);background:var(--s2);color:var(--muted);transition:all .2s;white-space:nowrap;}
-.mtab.active{background:var(--tqa);color:var(--tq);border-color:rgba(45,212,191,.3);}
-.model-panel{display:none;}
-.model-panel.active{display:block;}
-
-/* EXIT LEVELS */
-.exit-level{display:flex;align-items:center;gap:.6rem;padding:.5rem .6rem;background:var(--s2);border:1px solid var(--bd);border-radius:5px;}
-.exit-pct{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted);width:28px;}
-.exit-bar-wrap{flex:1;height:4px;background:var(--bd);border-radius:2px;overflow:hidden;}
-.exit-bar-fill{height:100%;border-radius:2px;background:var(--tq);}
-.exit-price{font-family:'DM Mono',monospace;font-size:.68rem;font-weight:500;color:var(--text);width:70px;text-align:right;}
-.exit-roi{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--tq);width:42px;text-align:right;}
-.bnav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(7,9,13,.97);backdrop-filter:blur(20px);border-top:1px solid var(--bd);display:flex;align-items:center;justify-content:space-around;padding:.5rem .5rem calc(.5rem + env(safe-area-inset-bottom));}
-.bnav-item{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;padding:.2rem .4rem;flex:1;}
-.bnav-icon{font-size:19px;line-height:1;}
-.bnav-lbl{font-family:'DM Mono',monospace;font-size:.45rem;color:var(--muted);text-transform:uppercase;}
-.bnav-item.active .bnav-lbl{color:var(--tq);}
+/* ── MOBILE ── */
+@media(max-width:768px){
+  .sidebar{position:fixed;left:0;top:48px;bottom:0;z-index:150;transform:translateX(-100%);transition:transform .25s;}
+  .sidebar.mobile-open{transform:translateX(0);}
+  .nav-tabs{display:none;}
+  .sb-toggle{display:none;}
+}
 </style>
 </head>
 <body>
+<div class="shell">
 
-<nav>
-  <div class="logo">
-    <svg width="24" height="24" viewBox="0 0 72 72" fill="none">
-      <rect x="22" y="22" width="28" height="28" rx="2.5" transform="rotate(45 36 36)" stroke="#2DD4BF" stroke-width="1.5" fill="rgba(45,212,191,0.08)"/>
-      <rect x="28.5" y="28.5" width="15" height="15" rx="1.5" transform="rotate(45 36 36)" fill="#2DD4BF"/>
-      <line x1="36" y1="4" x2="36" y2="17" stroke="#2DD4BF" stroke-width="1.5" stroke-linecap="round"/>
-      <line x1="36" y1="55" x2="36" y2="68" stroke="#2DD4BF" stroke-width="1.5" stroke-linecap="round"/>
-      <line x1="4" y1="36" x2="17" y2="36" stroke="#2DD4BF" stroke-width="1.5" stroke-linecap="round"/>
-      <line x1="55" y1="36" x2="68" y2="36" stroke="#2DD4BF" stroke-width="1.5" stroke-linecap="round"/>
-      <circle cx="36" cy="4" r="2.4" fill="#2DD4BF"/>
-      <circle cx="36" cy="68" r="2.4" fill="#2DD4BF"/>
-      <circle cx="4" cy="36" r="2.4" fill="#2DD4BF"/>
-      <circle cx="68" cy="36" r="2.4" fill="#2DD4BF"/>
-    </svg>
-    <div class="logo-word">Chain<span>metric</span></div>
+<!-- ── TOP NAV ── -->
+<nav class="topnav">
+  <div class="nav-left">
+    <a class="nav-logo" href="index.html">
+      <svg width="22" height="22" viewBox="0 0 72 72" fill="none">
+        <rect x="22" y="22" width="28" height="28" rx="2.5" transform="rotate(45 36 36)" stroke="#2DD4BF" stroke-width="1.5" fill="rgba(45,212,191,0.08)"/>
+        <rect x="28.5" y="28.5" width="15" height="15" rx="1.5" transform="rotate(45 36 36)" fill="#2DD4BF"/>
+        <line x1="36" y1="4" x2="36" y2="17" stroke="#2DD4BF" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="36" y1="55" x2="36" y2="68" stroke="#2DD4BF" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="4" y1="36" x2="17" y2="36" stroke="#2DD4BF" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="55" y1="36" x2="68" y2="36" stroke="#2DD4BF" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="36" cy="4" r="2.4" fill="#2DD4BF"/>
+        <circle cx="36" cy="68" r="2.4" fill="#2DD4BF"/>
+        <circle cx="4" cy="36" r="2.4" fill="#2DD4BF"/>
+        <circle cx="68" cy="36" r="2.4" fill="#2DD4BF"/>
+      </svg>
+      <div class="logo-word">Chain<span>metric</span></div>
+    </a>
+    <div class="nav-sep"></div>
+    <div class="nav-tabs">
+      <button class="ntab active" onclick="switchSection('crypto',this)">Crypto</button>
+      <button class="ntab" onclick="switchSection('onchain',this)">On-Chain</button>
+      <button class="ntab" onclick="switchSection('macro',this)">Macro</button>
+      <button class="ntab" onclick="switchSection('cycles',this)">Ciclos</button>
+      <button class="ntab" onclick="switchSection('dominance',this)">Dominancia</button>
+      <button class="ntab" onclick="switchSection('technical',this)">Técnico</button>
+      <button class="ntab" style="color:var(--tq)" onclick="switchSection('ai',this)">✦ AI Studio</button>
+    </div>
   </div>
-  <div class="live-badge"><div class="ldot"></div>LIVE</div>
+  <div class="nav-right">
+    <div class="live-badge"><div class="ldot"></div>LIVE</div>
+    <span class="src-txt" id="btc-ticker">BTC —</span>
+    <!-- Not logged in state -->
+    <div id="nav-guest" style="display:flex;gap:.5rem;">
+      <a href="login.html" class="nav-btn ghost">Login</a>
+      <a href="login.html" class="nav-btn primary">Pro →</a>
+    </div>
+    <!-- Logged in state (hidden by default) -->
+    <div id="nav-user" style="display:none;">
+      <div class="nav-user">
+        <div class="user-avatar">U</div>
+        <div>
+          <div class="user-name">Usuario</div>
+        </div>
+        <div class="user-plan">FREE</div>
+      </div>
+    </div>
+  </div>
 </nav>
 
-<div class="tabs">
-  <button class="tab active" onclick="showPage('overview',this)">Overview</button>
-  <button class="tab" onclick="showPage('onchain',this)">On-Chain</button>
-  <button class="tab" onclick="showPage('modelos',this)">Modelos</button>
-  <button class="tab" onclick="showPage('ciclos',this)">Ciclos</button>
-  <button class="tab" onclick="showPage('dominancia',this)">Dominancia</button>
-  <button class="tab" onclick="showPage('tecnico',this)">Técnico</button>
-  <button class="tab" onclick="showPage('ai',this)">✦ AI Studio</button>
-</div>
+<!-- ── MAIN ── -->
+<div class="main" style="position:relative;">
 
-<div class="wrap">
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
 
-<!-- OVERVIEW -->
-<div class="page active" id="page-overview">
-
-  <!-- TOP 10 TABLE -->
-  <div class="card" style="margin-top:.5rem">
-    <div class="card-hd">
-      <div><div class="card-title"><span class="ldot" style="margin-right:5px"></span>Top 10 Criptomonedas</div><div class="card-sub">Sin stablecoins · Datos reales · CoinGecko</div></div>
-      <div class="badge badge-up" id="top10-updated">LIVE</div>
-    </div>
-    <div id="top10-list" style="padding:.3rem 0;">
-      <!-- Filled by JS -->
-      <div style="display:flex;align-items:center;justify-content:center;height:120px;gap:8px;">
-        <div class="spinner"></div>
-        <span style="font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted)">Cargando top 10...</span>
+    <!-- Search -->
+    <div class="sb-search">
+      <div class="search-wrap">
+        <svg class="search-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="sb-input" id="sb-search-input" placeholder="Buscar métrica..." oninput="filterMetrics(this.value)">
       </div>
     </div>
-  </div>
 
-  <!-- COIN SELECTOR + CHART -->
-  <div class="card">
-    <div class="card-hd">
-      <div><div class="card-title" id="ov-title">Bitcoin — Precio USD</div><div class="card-sub">Datos reales · CoinGecko API · chainmetric.live</div></div>
-      <div class="badge badge-up" id="ov-badge">—</div>
-    </div>
+    <!-- Metrics list -->
+    <div class="sb-scroll" id="sb-scroll">
 
-    <!-- COIN SELECTOR -->
-    <div id="coin-selector" style="display:flex;gap:5px;overflow-x:auto;padding:.55rem .8rem;border-bottom:1px solid var(--bd);scrollbar-width:none;">
-      <!-- Filled by JS -->
-    </div>
-
-    <div class="tf">
-      <button class="tf-btn" onclick="ovTF(this,7)">7D</button>
-      <button class="tf-btn active" onclick="ovTF(this,30)">30D</button>
-      <button class="tf-btn" onclick="ovTF(this,90)">90D</button>
-      <button class="tf-btn" onclick="ovTF(this,365)">1A</button>
-    </div>
-    <div class="mstrip">
-      <div class="met"><div class="met-l">Precio</div><div class="met-v" id="ov-p" style="color:var(--tq)">—</div></div>
-      <div class="met"><div class="met-l">Máx</div><div class="met-v" id="ov-h" style="color:var(--red)">—</div></div>
-      <div class="met"><div class="met-l">Mín</div><div class="met-v" id="ov-l" style="color:var(--tq)">—</div></div>
-      <div class="met"><div class="met-l">Cambio</div><div class="met-v" id="ov-c">—</div></div>
-      <div class="met"><div class="met-l">Mkt Cap</div><div class="met-v" id="ov-mc" style="color:var(--muted)">—</div></div>
-    </div>
-    <div class="chart-body">
-      <div class="chart-wrap" style="height:240px">
-        <div class="loader" id="ov-loader"><div class="spinner"></div><div class="loader-txt">Conectando a CoinGecko...</div></div>
-        <canvas id="ovChart"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- MARKET SNAPSHOT -->
-  <div class="card">
-    <div class="card-hd"><div><div class="card-title">Snapshot del Mercado</div><div class="card-sub">Métricas clave</div></div></div>
-    <div class="mgrid">
-      <div class="mi"><div class="mi-l">BTC Dominance</div><div class="mi-v" id="snap-dom" style="color:var(--tq)">—</div><div class="mi-s" id="snap-dom-s" style="color:var(--tq)">—</div><div class="mi-bar"><div class="mi-fill" id="snap-dom-b" style="width:0%;background:var(--tq)"></div></div></div>
-      <div class="mi"><div class="mi-l">Total Mkt Cap</div><div class="mi-v" id="snap-mc" style="color:var(--text)">—</div><div class="mi-s" id="snap-mc-s" style="color:var(--tq)">—</div><div class="mi-bar"><div class="mi-fill" style="width:72%;background:#a78bfa"></div></div></div>
-      <div class="mi"><div class="mi-l">Fear & Greed</div><div class="mi-v" style="color:var(--gold)">62</div><div class="mi-s" style="color:var(--gold)">⬤ Greed</div><div class="mi-bar"><div class="mi-fill" style="width:62%;background:var(--gold)"></div></div></div>
-      <div class="mi"><div class="mi-l">MVRV Z-Score</div><div class="mi-v" style="color:var(--gold)">2.14</div><div class="mi-s" style="color:var(--gold)">⬤ Neutro</div><div class="mi-bar"><div class="mi-fill" style="width:35%;background:var(--gold)"></div></div></div>
-    </div>
-  </div>
-</div>
-
-<!-- ON-CHAIN -->
-<div class="page" id="page-onchain">
-  <div class="sec-hero">
-    <div class="sec-eye">On-Chain Metrics</div>
-    <h1 class="sec-title">Lo que la cadena <span>no miente</span></h1>
-    <p class="sec-sub">// MVRV · NVT · SOPR · Puell · Hash Ribbons</p>
-  </div>
-  <div class="card">
-    <div class="card-hd"><div><div class="card-title">MVRV Z-Score</div><div class="card-sub">Market Value vs Realized Value</div></div><div class="badge badge-neu">2.14 — NEUTRO</div></div>
-    <div class="ai-resp"><div class="ai-av">◆</div><div class="ai-txt">MVRV en <strong>2.14</strong> — zona neutra-alcista. Sobrecompra extrema (&gt;7) históricamente coincide con tops de ciclo. Acumulación óptima por debajo de <strong>0</strong>. Señal: mantener posición.</div></div>
-    <div class="zleg"><div class="zl"><div class="zl-dot" style="background:rgba(255,69,96,.5)"></div>Sobrecompra &gt;6</div><div class="zl"><div class="zl-dot" style="background:rgba(245,197,24,.5)"></div>Neutro 0–6</div><div class="zl"><div class="zl-dot" style="background:rgba(45,212,191,.5)"></div>Acumulación &lt;0</div></div>
-    <div class="chart-body"><div class="chart-wrap" style="height:200px"><canvas id="mvrvChart"></canvas></div></div>
-  </div>
-  <div class="card">
-    <div class="card-hd"><div><div class="card-title">Panel On-Chain</div><div class="card-sub">Señales cuantitativas</div></div></div>
-    <div class="mgrid">
-      <div class="mi"><div class="mi-l">NVT Signal</div><div class="mi-v" style="color:var(--tq)">87.4</div><div class="mi-s" style="color:var(--tq)">▲ Saludable</div><div class="mi-bar"><div class="mi-fill" style="width:55%;background:var(--tq)"></div></div></div>
-      <div class="mi"><div class="mi-l">Puell Multiple</div><div class="mi-v" style="color:var(--gold)">0.82</div><div class="mi-s" style="color:var(--gold)">⬤ Neutro</div><div class="mi-bar"><div class="mi-fill" style="width:42%;background:var(--gold)"></div></div></div>
-      <div class="mi"><div class="mi-l">SOPR</div><div class="mi-v" style="color:var(--tq)">1.034</div><div class="mi-s" style="color:var(--tq)">▲ Bullish</div><div class="mi-bar"><div class="mi-fill" style="width:65%;background:var(--tq)"></div></div></div>
-      <div class="mi"><div class="mi-l">Reserve Risk</div><div class="mi-v" style="color:var(--tq)">0.0012</div><div class="mi-s" style="color:var(--tq)">▲ Compra</div><div class="mi-bar"><div class="mi-fill" style="width:22%;background:var(--tq)"></div></div></div>
-      <div class="mi"><div class="mi-l">Hash Ribbons</div><div class="mi-v" style="color:var(--tq);font-size:.72rem">RECOVERY</div><div class="mi-s" style="color:var(--tq)">▲ Buy Signal</div><div class="mi-bar"><div class="mi-fill" style="width:80%;background:var(--tq)"></div></div></div>
-      <div class="mi"><div class="mi-l">Realized Price</div><div class="mi-v" style="color:var(--text)">$47.2k</div><div class="mi-s" style="color:var(--tq)">▲ Precio &gt; RP</div><div class="mi-bar"><div class="mi-fill" style="width:68%;background:#a78bfa"></div></div></div>
-    </div>
-  </div>
-</div>
-
-<!-- MODELOS -->
-<div class="page" id="page-modelos">
-  <div class="sec-hero">
-    <div class="sec-eye">Modelos & Herramientas</div>
-    <h1 class="sec-title">Todos los modelos <span>de Cowen</span></h1>
-    <p class="sec-sub">// Log Regression · DCA · Risk · MPT · Flippening · Macro</p>
-  </div>
-
-  <!-- MODEL TABS -->
-  <div style="display:flex;gap:5px;overflow-x:auto;margin-bottom:1rem;padding-bottom:.2rem;scrollbar-width:none;">
-    <button class="mtab active" onclick="setModel(this,'logregression')">Log Regression</button>
-    <button class="mtab" onclick="setModel(this,'dca')">DCA</button>
-    <button class="mtab" onclick="setModel(this,'risk')">Risk Model</button>
-    <button class="mtab" onclick="setModel(this,'mpt')">MPT</button>
-    <button class="mtab" onclick="setModel(this,'flippening')">Flippening</button>
-    <button class="mtab" onclick="setModel(this,'macro')">Macro</button>
-    <button class="mtab" onclick="setModel(this,'exit')">Exit Strategy</button>
-    <button class="mtab" onclick="setModel(this,'roi')">ROI Bottom</button>
-  </div>
-
-  <!-- LOG REGRESSION BANDS -->
-  <div class="model-panel active" id="model-logregression">
-    <div class="card">
-      <div class="card-hd"><div><div class="card-title">Log Regression Bands — Bitcoin</div><div class="card-sub">Canal logarítmico · Modelo Power Law</div></div><div class="badge badge-up" id="lr-badge">ZONA BARATA</div></div>
-      <div class="ai-resp"><div class="ai-av">◆</div><div class="ai-txt" id="lr-txt">Cargando análisis...</div></div>
-      <div class="zleg">
-        <div class="zl"><div class="zl-dot" style="background:#ff4560"></div>Bubble (&gt;$300k)</div>
-        <div class="zl"><div class="zl-dot" style="background:#ff6b35"></div>FOMO</div>
-        <div class="zl"><div class="zl-dot" style="background:#f5c518"></div>Hold</div>
-        <div class="zl"><div class="zl-dot" style="background:#7fff6f"></div>Barato</div>
-        <div class="zl"><div class="zl-dot" style="background:var(--tq)"></div>Compra máxima</div>
-      </div>
-      <div class="mstrip">
-        <div class="met"><div class="met-l">Precio actual</div><div class="met-v" id="lr-price" style="color:var(--tq)">—</div></div>
-        <div class="met"><div class="met-l">Fair Value</div><div class="met-v" id="lr-fair" style="color:var(--gold)">—</div></div>
-        <div class="met"><div class="met-l">Banda actual</div><div class="met-v" id="lr-band" style="color:var(--text)">—</div></div>
-        <div class="met"><div class="met-l">% vs Fair</div><div class="met-v" id="lr-pct" style="color:var(--tq)">—</div></div>
-      </div>
-      <div class="chart-body"><div class="chart-wrap" style="height:230px">
-        <div class="loader" id="lr-loader"><div class="spinner"></div><div class="loader-txt">Conectando CoinGecko...</div></div>
-        <canvas id="lrChart"></canvas>
-      </div></div>
-    </div>
-  </div>
-
-  <!-- DCA SIMULATOR -->
-  <div class="model-panel" id="model-dca">
-    <div class="card">
-      <div class="card-hd"><div><div class="card-title">DCA Simulator — Dollar Cost Averaging</div><div class="card-sub">Simulador de compras periódicas</div></div><div class="badge badge-up" id="dca-badge">+0.0%</div></div>
-      <div class="ai-resp"><div class="ai-av">◆</div><div class="ai-txt" id="dca-insight">El DCA elimina el timing del mercado comprando a precio promedio. Históricamente supera a la mayoría de estrategias activas en BTC.</div></div>
-
-      <!-- DCA Controls -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;padding:.8rem;border-bottom:1px solid var(--bd);">
-        <div>
-          <div class="met-l" style="margin-bottom:5px">Inversión periódica</div>
-          <div style="display:flex;align-items:center;gap:5px;">
-            <span style="font-family:'DM Mono',monospace;font-size:.7rem;color:var(--muted)">€</span>
-            <input id="dca-amount" type="number" value="100" min="1" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--text);font-family:'DM Mono',monospace;font-size:.8rem;padding:6px 8px;border-radius:4px;outline:none;">
-          </div>
+      <!-- CRYPTO -->
+      <div class="sb-cat open" id="cat-crypto">
+        <div class="sb-cat-header" onclick="toggleCat(this)">
+          <span class="sb-cat-name">Crypto</span>
+          <span class="sb-cat-arrow">▶</span>
         </div>
-        <div>
-          <div class="met-l" style="margin-bottom:5px">Frecuencia</div>
-          <select id="dca-freq" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--text);font-family:'DM Mono',monospace;font-size:.72rem;padding:7px 8px;border-radius:4px;outline:none;appearance:none;">
-            <option value="7">Semanal</option>
-            <option value="14">Quincenal</option>
-            <option value="30" selected>Mensual</option>
+        <div class="sb-cat-items">
+          <div class="sb-item active" onclick="loadMetric('btc-price')"><div class="sb-dot" style="background:#f7931a"></div><div class="sb-info"><span class="sb-name">Bitcoin (BTC)</span><span class="sb-desc">Precio histórico · Log scale</span></div></div>
+          <div class="sb-item" onclick="loadMetric('eth-price')"><div class="sb-dot" style="background:#627eea"></div><div class="sb-info"><span class="sb-name">Ethereum (ETH)</span><span class="sb-desc">Precio histórico · Log scale</span></div></div>
+          <div class="sb-item" onclick="loadMetric('sol-price')"><div class="sb-dot" style="background:#9945ff"></div><div class="sb-info"><span class="sb-name">Solana (SOL)</span><span class="sb-desc">Precio histórico</span></div></div>
+          <div class="sb-item" onclick="loadMetric('bnb-price')"><div class="sb-dot" style="background:#f5c518"></div><div class="sb-info"><span class="sb-name">BNB</span><span class="sb-desc">Precio histórico</span></div></div>
+          <div class="sb-item" onclick="loadMetric('xrp-price')"><div class="sb-dot" style="background:#2DD4BF"></div><div class="sb-info"><span class="sb-name">XRP</span><span class="sb-desc">Precio histórico</span></div></div>
+        </div>
+      </div>
+
+      <!-- ON-CHAIN -->
+      <div class="sb-cat open" id="cat-onchain">
+        <div class="sb-cat-header" onclick="toggleCat(this)">
+          <span class="sb-cat-name">On-Chain</span>
+          <span class="sb-cat-arrow">▶</span>
+        </div>
+        <div class="sb-cat-items">
+          <div class="sb-item" onclick="loadMetric('mvrv')"><div class="sb-dot" style="background:#2DD4BF"></div><div class="sb-info"><span class="sb-name">MVRV Z-Score</span><span class="sb-desc">Market Value vs Realized Value</span></div></div>
+          <div class="sb-item" onclick="loadMetric('sopr')"><div class="sb-dot" style="background:#2DD4BF"></div><div class="sb-info"><span class="sb-name">SOPR</span><span class="sb-desc">Spent Output Profit Ratio</span></div></div>
+          <div class="sb-item" onclick="loadMetric('nvt')"><div class="sb-dot" style="background:#2DD4BF"></div><div class="sb-info"><span class="sb-name">NVT Signal</span><span class="sb-desc">Network Value to Transactions</span></div></div>
+          <div class="sb-item" onclick="loadMetric('puell')"><div class="sb-dot" style="background:#f5c518"></div><div class="sb-info"><span class="sb-name">Puell Multiple</span><span class="sb-desc">Presión vendedora mineros</span></div><div class="sb-pro">PRO</div></div>
+          <div class="sb-item" onclick="loadMetric('reserve-risk')"><div class="sb-dot" style="background:#2DD4BF"></div><div class="sb-info"><span class="sb-name">Reserve Risk</span><span class="sb-desc">Convicción vs precio</span></div><div class="sb-pro">PRO</div></div>
+          <div class="sb-item" onclick="loadMetric('hash-ribbons')"><div class="sb-dot" style="background:#2DD4BF"></div><div class="sb-info"><span class="sb-name">Hash Ribbons</span><span class="sb-desc">MA30 vs MA60 hashrate</span></div><div class="sb-pro">PRO</div></div>
+          <div class="sb-item" onclick="loadMetric('realized-price')"><div class="sb-dot" style="background:#a78bfa"></div><div class="sb-info"><span class="sb-name">Realized Price</span><span class="sb-desc">Precio de coste de mercado</span></div></div>
+        </div>
+      </div>
+
+      <!-- MACRO -->
+      <div class="sb-cat" id="cat-macro">
+        <div class="sb-cat-header" onclick="toggleCat(this)">
+          <span class="sb-cat-name">Macro</span>
+          <span class="sb-cat-arrow">▶</span>
+        </div>
+        <div class="sb-cat-items">
+          <div class="sb-item" onclick="loadMetric('sp500')"><div class="sb-dot" style="background:#a78bfa"></div><div class="sb-info"><span class="sb-name">S&P 500</span><span class="sb-desc">Índice bursátil USA</span></div></div>
+          <div class="sb-item" onclick="loadMetric('inflation')"><div class="sb-dot" style="background:#ff4560"></div><div class="sb-info"><span class="sb-name">Inflación YoY</span><span class="sb-desc">CPI interanual USA</span></div><div class="sb-pro">PRO</div></div>
+          <div class="sb-item" onclick="loadMetric('dxy')"><div class="sb-dot" style="background:#f5c518"></div><div class="sb-info"><span class="sb-name">DXY Index</span><span class="sb-desc">Índice dólar americano</span></div><div class="sb-pro">PRO</div></div>
+          <div class="sb-item" onclick="loadMetric('nasdaq')"><div class="sb-dot" style="background:#a78bfa"></div><div class="sb-info"><span class="sb-name">NASDAQ 100</span><span class="sb-desc">Índice tecnológico</span></div><div class="sb-pro">PRO</div></div>
+          <div class="sb-item" onclick="loadMetric('gold')"><div class="sb-dot" style="background:#f5c518"></div><div class="sb-info"><span class="sb-name">Oro (XAU/USD)</span><span class="sb-desc">Activo refugio</span></div><div class="sb-pro">PRO</div></div>
+        </div>
+      </div>
+
+      <!-- CYCLES -->
+      <div class="sb-cat" id="cat-cycles">
+        <div class="sb-cat-header" onclick="toggleCat(this)">
+          <span class="sb-cat-name">Ciclos</span>
+          <span class="sb-cat-arrow">▶</span>
+        </div>
+        <div class="sb-cat-items">
+          <div class="sb-item" onclick="loadMetric('rainbow')"><div class="sb-dot" style="background:#2DD4BF"></div><div class="sb-info"><span class="sb-name">Rainbow Chart</span><span class="sb-desc">Power Law Model</span></div></div>
+          <div class="sb-item" onclick="loadMetric('cycle-2024')"><div class="sb-dot" style="background:#2DD4BF"></div><div class="sb-info"><span class="sb-name">Ciclo 2024–2026</span><span class="sb-desc">Fases post-halving</span></div></div>
+          <div class="sb-item" onclick="loadMetric('cycle-compare')"><div class="sb-dot" style="background:#f5c518"></div><div class="sb-info"><span class="sb-name">Comparativa Ciclos</span><span class="sb-desc">2017 vs 2021 vs 2025</span></div><div class="sb-pro">PRO</div></div>
+          <div class="sb-item" onclick="loadMetric('halving-countdown')"><div class="sb-dot" style="background:#a78bfa"></div><div class="sb-info"><span class="sb-name">Halvings</span><span class="sb-desc">Historial y próximo</span></div></div>
+        </div>
+      </div>
+
+      <!-- DOMINANCE -->
+      <div class="sb-cat" id="cat-dominance">
+        <div class="sb-cat-header" onclick="toggleCat(this)">
+          <span class="sb-cat-name">Dominancia</span>
+          <span class="sb-cat-arrow">▶</span>
+        </div>
+        <div class="sb-cat-items">
+          <div class="sb-item" onclick="loadMetric('btc-dom')"><div class="sb-dot" style="background:#f7931a"></div><div class="sb-info"><span class="sb-name">BTC Dominance</span><span class="sb-desc">% del market cap total</span></div></div>
+          <div class="sb-item" onclick="loadMetric('eth-dom')"><div class="sb-dot" style="background:#627eea"></div><div class="sb-info"><span class="sb-name">ETH Dominance</span><span class="sb-desc">% del market cap total</span></div></div>
+          <div class="sb-item" onclick="loadMetric('altcoin-season')"><div class="sb-dot" style="background:#2DD4BF"></div><div class="sb-info"><span class="sb-name">Altcoin Season Index</span><span class="sb-desc">% alts > BTC en 90D</span></div><div class="sb-pro">PRO</div></div>
+          <div class="sb-item" onclick="loadMetric('btc-eth-ratio')"><div class="sb-dot" style="background:#f5c518"></div><div class="sb-info"><span class="sb-name">BTC/ETH Ratio</span><span class="sb-desc">Relación de valor relativo</span></div><div class="sb-pro">PRO</div></div>
+        </div>
+      </div>
+
+      <!-- TECHNICAL -->
+      <div class="sb-cat" id="cat-technical">
+        <div class="sb-cat-header" onclick="toggleCat(this)">
+          <span class="sb-cat-name">Técnico</span>
+          <span class="sb-cat-arrow">▶</span>
+        </div>
+        <div class="sb-cat-items">
+          <div class="sb-item" onclick="loadMetric('rsi')"><div class="sb-dot" style="background:#7fff6f"></div><div class="sb-info"><span class="sb-name">RSI Semanal (14)</span><span class="sb-desc">Relative Strength Index</span></div></div>
+          <div class="sb-item" onclick="loadMetric('ma-cross')"><div class="sb-dot" style="background:#2DD4BF"></div><div class="sb-info"><span class="sb-name">MA50 + MA200</span><span class="sb-desc">Golden Cross / Death Cross</span></div></div>
+          <div class="sb-item" onclick="loadMetric('macd')"><div class="sb-dot" style="background:#a78bfa"></div><div class="sb-info"><span class="sb-name">MACD</span><span class="sb-desc">Moving Average Convergence</span></div><div class="sb-pro">PRO</div></div>
+          <div class="sb-item" onclick="loadMetric('bollinger')"><div class="sb-dot" style="background:#f5c518"></div><div class="sb-info"><span class="sb-name">Bollinger Bands</span><span class="sb-desc">Volatilidad + tendencia</span></div><div class="sb-pro">PRO</div></div>
+        </div>
+      </div>
+
+      <!-- AI STUDIO -->
+      <div class="sb-cat" id="cat-ai">
+        <div class="sb-cat-header" onclick="toggleCat(this)">
+          <span class="sb-cat-name" style="color:var(--tq)">✦ AI Studio</span>
+          <span class="sb-cat-arrow">▶</span>
+        </div>
+        <div class="sb-cat-items">
+          <div class="sb-item" onclick="loadMetric('ai-studio')"><div class="sb-dot" style="background:var(--tq)"></div><div class="sb-info"><span class="sb-name">AI Chart Studio</span><span class="sb-desc">Genera cualquier gráfica con IA</span></div><div class="sb-pro">PRO</div></div>
+        </div>
+      </div>
+
+    </div><!-- /sb-scroll -->
+  </div><!-- /sidebar -->
+
+  <!-- TOGGLE BUTTON -->
+  <div class="sb-toggle" id="sb-toggle" onclick="toggleSidebar()">▶</div>
+
+  <!-- ── CHART PANEL ── -->
+  <div class="chart-panel" id="chart-panel">
+
+    <!-- Chart Header -->
+    <div class="chart-head">
+      <div class="ch-left">
+        <div class="chart-title-wrap">
+          <div class="chart-metric-name" id="chart-name">Bitcoin — Precio (BTC/USD)</div>
+          <div class="chart-metric-sub" id="chart-sub">CoinGecko API · Datos reales · Log scale</div>
+        </div>
+        <div class="ctrl-group">
+          <span class="ctrl-label">Overlay</span>
+          <select class="ctrl-select" id="overlay-sel" onchange="updateOverlay()">
+            <option value="none">Ninguno</option>
+            <option value="sp500">S&P 500</option>
+            <option value="gold">Oro</option>
+            <option value="dxy">DXY</option>
           </select>
         </div>
-        <div>
-          <div class="met-l" style="margin-bottom:5px">Período</div>
-          <select id="dca-period" style="width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--text);font-family:'DM Mono',monospace;font-size:.72rem;padding:7px 8px;border-radius:4px;outline:none;appearance:none;">
-            <option value="365">1 año</option>
-            <option value="730" selected>2 años</option>
-            <option value="1095">3 años</option>
+        <div class="ctrl-group">
+          <span class="ctrl-label">MA</span>
+          <select class="ctrl-select" id="ma-sel" onchange="updateMA()">
+            <option value="none">Ninguna</option>
+            <option value="ma50">MA 50</option>
+            <option value="ma200">MA 200</option>
+            <option value="both">MA 50 + MA 200</option>
           </select>
         </div>
-        <div style="display:flex;align-items:flex-end;">
-          <button onclick="runDCA()" style="width:100%;padding:8px;background:var(--tq);color:#07090d;font-family:'DM Mono',monospace;font-size:.62rem;font-weight:700;border:none;border-radius:4px;cursor:pointer;letter-spacing:.05em;">▶ SIMULAR</button>
+        <div class="tf-group">
+          <button class="tf-btn" onclick="setTF(this,7)">7D</button>
+          <button class="tf-btn" onclick="setTF(this,30)">30D</button>
+          <button class="tf-btn active" onclick="setTF(this,90)">90D</button>
+          <button class="tf-btn" onclick="setTF(this,365)">1A</button>
+          <button class="tf-btn" onclick="setTF(this,1825)">5A</button>
+        </div>
+        <div class="scale-group">
+          <button class="scale-btn" id="lin-btn" onclick="setScale('lin')">Lin</button>
+          <button class="scale-btn active" id="log-btn" onclick="setScale('log')">Log</button>
         </div>
       </div>
-
-      <div class="mstrip">
-        <div class="met"><div class="met-l">Invertido</div><div class="met-v" id="dca-invested" style="color:var(--muted)">—</div></div>
-        <div class="met"><div class="met-l">Valor actual</div><div class="met-v" id="dca-value" style="color:var(--tq)">—</div></div>
-        <div class="met"><div class="met-l">Ganancia</div><div class="met-v" id="dca-profit" style="color:var(--tq)">—</div></div>
-        <div class="met"><div class="met-l">Precio medio</div><div class="met-v" id="dca-avgprice" style="color:var(--gold)">—</div></div>
-      </div>
-      <div class="chart-body"><div class="chart-wrap" style="height:210px">
-        <div class="loader" id="dca-loader"><div class="spinner"></div><div class="loader-txt">Cargando datos...</div></div>
-        <canvas id="dcaChart"></canvas>
-      </div></div>
-    </div>
-  </div>
-
-  <!-- PRICE RISK MODEL -->
-  <div class="model-panel" id="model-risk">
-    <div class="card">
-      <div class="card-hd"><div><div class="card-title">Price Risk Model</div><div class="card-sub">Puntuación de riesgo de precio (0–10)</div></div><div class="badge badge-neu" id="risk-badge">RIESGO MEDIO</div></div>
-      <div class="ai-resp"><div class="ai-av">◆</div><div class="ai-txt" id="risk-txt">El Risk Model combina drawdown desde máximos, desviación respecto a medias móviles y volatilidad histórica para dar una puntuación de riesgo. A mayor puntuación, mayor riesgo de corrección.</div></div>
-      <div class="mstrip">
-        <div class="met"><div class="met-l">Risk Score</div><div class="met-v" id="risk-score" style="color:var(--gold)">—</div></div>
-        <div class="met"><div class="met-l">Drawdown ATH</div><div class="met-v" id="risk-dd" style="color:var(--red)">—</div></div>
-        <div class="met"><div class="met-l">Dev. MA200</div><div class="met-v" id="risk-dev" style="color:var(--text)">—</div></div>
-        <div class="met"><div class="met-l">Volatilidad 30D</div><div class="met-v" id="risk-vol" style="color:var(--muted)">—</div></div>
-      </div>
-      <div class="chart-body"><div class="chart-wrap" style="height:210px">
-        <div class="loader" id="risk-loader"><div class="spinner"></div><div class="loader-txt">Calculando riesgo...</div></div>
-        <canvas id="riskChart"></canvas>
-      </div></div>
-    </div>
-    <!-- Risk Gauge -->
-    <div class="card">
-      <div class="card-hd"><div><div class="card-title">Risk Gauge</div><div class="card-sub">Nivel de riesgo actual</div></div></div>
-      <div style="padding:1rem;display:flex;flex-direction:column;align-items:center;gap:.8rem;">
-        <div style="width:100%;height:12px;background:linear-gradient(to right,var(--tq),var(--gold),var(--red));border-radius:6px;position:relative;">
-          <div id="risk-needle" style="position:absolute;top:-4px;width:4px;height:20px;background:#fff;border-radius:2px;left:50%;transform:translateX(-50%);transition:left .8s ease;"></div>
+      <div class="ch-right">
+        <div class="icon-btn" title="Descargar PNG" onclick="downloadChart()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </div>
-        <div style="display:flex;justify-content:space-between;width:100%;">
-          <span style="font-family:'DM Mono',monospace;font-size:.55rem;color:var(--tq)">BAJO RIESGO</span>
-          <span style="font-family:'DM Mono',monospace;font-size:.55rem;color:var(--gold)">NEUTRO</span>
-          <span style="font-family:'DM Mono',monospace;font-size:.55rem;color:var(--red)">ALTO RIESGO</span>
+        <div class="icon-btn" title="Compartir">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         </div>
-        <div id="risk-label" style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:var(--gold)">Calculando...</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MPT -->
-  <div class="model-panel" id="model-mpt">
-    <div class="card">
-      <div class="card-hd"><div><div class="card-title">Modern Portfolio Theory (MPT)</div><div class="card-sub">Frontera eficiente · Optimización de cartera cripto</div></div><div class="badge badge-up">BETA</div></div>
-      <div class="ai-resp"><div class="ai-av">◆</div><div class="ai-txt">La <strong>Teoría Moderna de Carteras</strong> aplicada a cripto busca maximizar el retorno para un nivel de riesgo dado. El gráfico muestra la frontera eficiente BTC/ETH/SOL basada en correlaciones históricas.</div></div>
-      <div class="mstrip">
-        <div class="met"><div class="met-l">BTC peso óptimo</div><div class="met-v" style="color:#f7931a">62%</div></div>
-        <div class="met"><div class="met-l">ETH peso óptimo</div><div class="met-v" style="color:#627eea">24%</div></div>
-        <div class="met"><div class="met-l">SOL peso óptimo</div><div class="met-v" style="color:#9945ff">14%</div></div>
-        <div class="met"><div class="met-l">Sharpe ratio</div><div class="met-v" style="color:var(--tq)">1.84</div></div>
-      </div>
-      <div class="chart-body"><div class="chart-wrap" style="height:220px"><canvas id="mptChart"></canvas></div></div>
-    </div>
-    <div class="card">
-      <div class="card-hd"><div><div class="card-title">Correlación de Activos</div><div class="card-sub">Matriz de correlación 90D</div></div></div>
-      <div style="padding:.8rem;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;">
-        <div style="font-family:'DM Mono',monospace;font-size:.55rem;color:var(--muted);padding:4px;text-align:center;"></div>
-        <div style="font-family:'DM Mono',monospace;font-size:.55rem;color:#f7931a;padding:4px;text-align:center;">BTC</div>
-        <div style="font-family:'DM Mono',monospace;font-size:.55rem;color:#627eea;padding:4px;text-align:center;">ETH</div>
-        <div style="font-family:'DM Mono',monospace;font-size:.55rem;color:#9945ff;padding:4px;text-align:center;">SOL</div>
-        <div style="font-family:'DM Mono',monospace;font-size:.55rem;color:#f7931a;padding:4px;text-align:center;">BTC</div>
-        <div style="background:rgba(45,212,191,.2);border-radius:3px;padding:5px;text-align:center;font-family:'DM Mono',monospace;font-size:.65rem;color:var(--tq);">1.00</div>
-        <div style="background:rgba(245,197,24,.15);border-radius:3px;padding:5px;text-align:center;font-family:'DM Mono',monospace;font-size:.65rem;color:var(--gold);">0.78</div>
-        <div style="background:rgba(245,197,24,.1);border-radius:3px;padding:5px;text-align:center;font-family:'DM Mono',monospace;font-size:.65rem;color:var(--gold);">0.71</div>
-        <div style="font-family:'DM Mono',monospace;font-size:.55rem;color:#627eea;padding:4px;text-align:center;">ETH</div>
-        <div style="background:rgba(245,197,24,.15);border-radius:3px;padding:5px;text-align:center;font-family:'DM Mono',monospace;font-size:.65rem;color:var(--gold);">0.78</div>
-        <div style="background:rgba(45,212,191,.2);border-radius:3px;padding:5px;text-align:center;font-family:'DM Mono',monospace;font-size:.65rem;color:var(--tq);">1.00</div>
-        <div style="background:rgba(245,197,24,.18);border-radius:3px;padding:5px;text-align:center;font-family:'DM Mono',monospace;font-size:.65rem;color:var(--gold);">0.82</div>
-        <div style="font-family:'DM Mono',monospace;font-size:.55rem;color:#9945ff;padding:4px;text-align:center;">SOL</div>
-        <div style="background:rgba(245,197,24,.1);border-radius:3px;padding:5px;text-align:center;font-family:'DM Mono',monospace;font-size:.65rem;color:var(--gold);">0.71</div>
-        <div style="background:rgba(245,197,24,.18);border-radius:3px;padding:5px;text-align:center;font-family:'DM Mono',monospace;font-size:.65rem;color:var(--gold);">0.82</div>
-        <div style="background:rgba(45,212,191,.2);border-radius:3px;padding:5px;text-align:center;font-family:'DM Mono',monospace;font-size:.65rem;color:var(--tq);">1.00</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- FLIPPENING -->
-  <div class="model-panel" id="model-flippening">
-    <div class="card">
-      <div class="card-hd"><div><div class="card-title">Flippening Index — ETH vs BTC</div><div class="card-sub">Probabilidad de que ETH supere a BTC</div></div><div class="badge badge-dn" id="flip-badge">44% — BTC DOMINA</div></div>
-      <div class="ai-resp"><div class="ai-av">◆</div><div class="ai-txt" id="flip-txt">El <strong>Flippening Index</strong> combina market cap, volumen y dominancia para medir cuánto se acerca ETH a superar a BTC. Actualmente en <strong>44%</strong> — lejos del 100% necesario para el flippening.</div></div>
-      <div class="mstrip">
-        <div class="met"><div class="met-l">Market Cap ratio</div><div class="met-v" id="flip-mc" style="color:var(--gold)">—</div></div>
-        <div class="met"><div class="met-l">BTC precio</div><div class="met-v" id="flip-btc" style="color:#f7931a">—</div></div>
-        <div class="met"><div class="met-l">ETH precio</div><div class="met-v" id="flip-eth" style="color:#627eea">—</div></div>
-        <div class="met"><div class="met-l">Ratio BTC/ETH</div><div class="met-v" id="flip-ratio" style="color:var(--muted)">—</div></div>
-      </div>
-      <div class="chart-body"><div class="chart-wrap" style="height:210px">
-        <div class="loader" id="flip-loader"><div class="spinner"></div><div class="loader-txt">Cargando datos reales...</div></div>
-        <canvas id="flipChart"></canvas>
-      </div></div>
-    </div>
-  </div>
-
-  <!-- MACRO -->
-  <div class="model-panel" id="model-macro">
-    <div class="card">
-      <div class="card-hd"><div><div class="card-title">US Inflation & Interest Rates</div><div class="card-sub">Contexto macro risk-on / risk-off</div></div><div class="badge badge-neu">MACRO</div></div>
-      <div class="ai-resp"><div class="ai-av">◆</div><div class="ai-txt">Los tipos de interés de la Fed y la inflación (CPI) son el contexto macro más importante para Bitcoin. Tipos altos = risk-off = presión bajista. Tipos bajos = risk-on = viento de cola alcista. Actualmente en zona de transición.</div></div>
-      <div class="mstrip">
-        <div class="met"><div class="met-l">Fed Funds Rate</div><div class="met-v" style="color:var(--red)">4.25%</div></div>
-        <div class="met"><div class="met-l">CPI Inflación</div><div class="met-v" style="color:var(--gold)">3.0%</div></div>
-        <div class="met"><div class="met-l">Real Rate</div><div class="met-v" style="color:var(--gold)">+1.25%</div></div>
-        <div class="met"><div class="met-l">Señal</div><div class="met-v" style="color:var(--gold);font-size:.62rem">NEUTRAL</div></div>
-      </div>
-      <div class="chart-body"><div class="chart-wrap" style="height:210px"><canvas id="macroChart"></canvas></div></div>
-    </div>
-    <div class="card">
-      <div class="card-hd"><div><div class="card-title">BTC vs Tipos de Interés</div><div class="card-sub">Correlación inversa histórica</div></div></div>
-      <div class="chart-body"><div class="chart-wrap" style="height:180px"><canvas id="btcRatesChart"></canvas></div></div>
-    </div>
-  </div>
-
-  <!-- EXIT STRATEGY -->
-  <div class="model-panel" id="model-exit">
-    <div class="card">
-      <div class="card-hd"><div><div class="card-title">Exit Strategy Builder</div><div class="card-sub">Reglas de toma de beneficios por tramos</div></div><div class="badge badge-up">PLANIFICADOR</div></div>
-      <div class="ai-resp"><div class="ai-av">◆</div><div class="ai-txt">Define tus niveles de salida por tramos. Cowen recomienda <strong>no vender todo de golpe</strong> — escalonar la salida reduce el riesgo de timing y asegura beneficios en distintos niveles.</div></div>
-
-      <div style="padding:.8rem;border-bottom:1px solid var(--bd);">
-        <div class="met-l" style="margin-bottom:.6rem">Precio de entrada (coste medio)</div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:.8rem;">
-          <span style="font-family:'DM Mono',monospace;font-size:.7rem;color:var(--muted)">$</span>
-          <input id="exit-entry" type="number" value="50000" style="flex:1;background:var(--s2);border:1px solid var(--bd);color:var(--text);font-family:'DM Mono',monospace;font-size:.8rem;padding:6px 8px;border-radius:4px;outline:none;">
-          <button onclick="buildExitStrategy()" style="padding:7px 14px;background:var(--tq);color:#07090d;font-family:'DM Mono',monospace;font-size:.6rem;font-weight:700;border:none;border-radius:4px;cursor:pointer;">CALCULAR</button>
+        <div class="icon-btn" title="Pantalla completa" onclick="toggleFullscreen()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
         </div>
       </div>
+    </div>
 
-      <div id="exit-levels" style="padding:.8rem;display:flex;flex-direction:column;gap:.5rem;border-bottom:1px solid var(--bd);">
-        <!-- Generated by JS -->
+    <!-- AI Analysis Bar -->
+    <div class="ai-bar" id="ai-bar">
+      <div class="ai-av">
+        <svg width="11" height="11" viewBox="0 0 72 72" fill="none"><rect x="22" y="22" width="28" height="28" rx="2" transform="rotate(45 36 36)" stroke="#2DD4BF" stroke-width="2" fill="none"/><rect x="28" y="28" width="16" height="16" rx="1" transform="rotate(45 36 36)" fill="#2DD4BF"/></svg>
       </div>
-
-      <div class="chart-body"><div class="chart-wrap" style="height:180px"><canvas id="exitChart"></canvas></div></div>
+      <div class="ai-text" id="ai-analysis">Cargando análisis con datos reales...</div>
     </div>
-  </div>
 
-  <!-- ROI AFTER BOTTOM -->
-  <div class="model-panel" id="model-roi">
-    <div class="card">
-      <div class="card-hd"><div><div class="card-title">ROI After Bottom</div><div class="card-sub">Retorno desde mínimos del ciclo</div></div><div class="badge badge-up" id="roi-badge">BTC +XXX%</div></div>
-      <div class="ai-resp"><div class="ai-av">◆</div><div class="ai-txt" id="roi-txt">Compara el rendimiento de las principales criptomonedas desde el mínimo del ciclo actual. Datos reales de CoinGecko.</div></div>
-      <div class="chart-body"><div class="chart-wrap" style="height:230px">
-        <div class="loader" id="roi-loader"><div class="spinner"></div><div class="loader-txt">Cargando datos reales...</div></div>
-        <canvas id="roiChart"></canvas>
-      </div></div>
+    <!-- Metrics strip -->
+    <div class="metrics-strip" id="metrics-strip">
+      <div class="met"><div class="met-l">Precio</div><div class="met-v" id="m-price" style="color:var(--tq)">—</div></div>
+      <div class="met"><div class="met-l">Máximo</div><div class="met-v" id="m-hi" style="color:var(--red)">—</div></div>
+      <div class="met"><div class="met-l">Mínimo</div><div class="met-v" id="m-lo" style="color:var(--tq)">—</div></div>
+      <div class="met"><div class="met-l">Cambio</div><div class="met-v" id="m-chg">—</div></div>
+      <div class="met"><div class="met-l">Volumen 24H</div><div class="met-v" id="m-vol" style="color:var(--muted)">—</div></div>
     </div>
-  </div>
 
-</div>
-
-<!-- CICLOS -->
-<div class="page" id="page-ciclos">
-  <div class="sec-hero">
-    <div class="sec-eye">Ciclos de Mercado</div>
-    <h1 class="sec-title">¿Dónde estamos <span>en el ciclo?</span></h1>
-    <p class="sec-sub">// Halvings · Comparativa histórica · Posición actual</p>
-  </div>
-  <div class="card">
-    <div class="card-hd"><div><div class="card-title">Ciclo 2024–2026</div><div class="card-sub">Basado en halvings históricos</div></div><div class="badge badge-up">FASE 3</div></div>
-    <div class="phases">
-      <div class="phase"><span class="phase-n">1</span><span class="phase-l">Post Bear</span></div>
-      <div class="phase"><span class="phase-n">2</span><span class="phase-l">Pre Halving</span></div>
-      <div class="phase active"><span class="phase-n">3</span><span class="phase-l">Post Halving ▼</span></div>
-      <div class="phase"><span class="phase-n">4</span><span class="phase-l">Euforia ATH</span></div>
-      <div class="phase"><span class="phase-n">5</span><span class="phase-l">Bear Market</span></div>
+    <!-- Zone legend -->
+    <div class="zone-bar" id="zone-bar" style="display:none;">
+      <div class="zl"><div class="zd" style="background:rgba(255,69,96,.5)"></div><span id="z1-label">Zona sobrecompra</span></div>
+      <div class="zl"><div class="zd" style="background:rgba(245,197,24,.5)"></div><span id="z2-label">Zona neutra</span></div>
+      <div class="zl"><div class="zd" style="background:rgba(45,212,191,.5)"></div><span id="z3-label">Zona acumulación</span></div>
     </div>
-    <div class="ai-resp"><div class="ai-av">◆</div><div class="ai-txt"><strong>Fase 3 — Post-Halving Bull</strong>. Históricamente dura 12–18 meses. ATH estimado: <strong>Q4 2025 – Q1 2026</strong>.</div></div>
-    <div class="chart-body"><div class="chart-wrap" style="height:190px"><canvas id="cycleChart"></canvas></div></div>
-  </div>
-  <div class="card">
-    <div class="card-hd"><div><div class="card-title">Comparativa de Ciclos</div><div class="card-sub">2017 vs 2021 vs 2025 (normalizado)</div></div></div>
-    <div class="comp-leg">
-      <div class="cl"><div class="cl-line" style="background:#f5c518"></div>2017</div>
-      <div class="cl"><div class="cl-line" style="background:#a78bfa"></div>2021</div>
-      <div class="cl"><div class="cl-line" style="background:var(--tq)"></div>2025</div>
-    </div>
-    <div class="chart-body"><div class="chart-wrap" style="height:190px"><canvas id="cycleCompChart"></canvas></div></div>
-  </div>
-</div>
 
-<!-- DOMINANCIA -->
-<div class="page" id="page-dominancia">
-  <div class="sec-hero">
-    <div class="sec-eye">Dominancia</div>
-    <h1 class="sec-title">BTC vs ETH vs <span>Altcoins</span></h1>
-  </div>
-  <div class="card">
-    <div class="card-hd"><div><div class="card-title">Dominancia del Mercado</div><div class="card-sub">% del market cap total</div></div><div class="badge badge-up">BTC ↑</div></div>
-    <div class="chart-body" style="padding-bottom:.3rem"><div class="chart-wrap" style="height:170px"><canvas id="domChart"></canvas></div></div>
-    <div class="dom-list">
-      <div class="dom-item"><span class="dom-sym" style="color:#f7931a">BTC</span><div class="dom-bw"><div class="dom-b" style="width:58.3%;background:#f7931a"></div></div><span class="dom-pct">58.3%</span></div>
-      <div class="dom-item"><span class="dom-sym" style="color:#627eea">ETH</span><div class="dom-bw"><div class="dom-b" style="width:13.2%;background:#627eea"></div></div><span class="dom-pct">13.2%</span></div>
-      <div class="dom-item"><span class="dom-sym" style="color:#9945ff">SOL</span><div class="dom-bw"><div class="dom-b" style="width:4.1%;background:#9945ff"></div></div><span class="dom-pct">4.1%</span></div>
-      <div class="dom-item"><span class="dom-sym" style="color:#f5c518">BNB</span><div class="dom-bw"><div class="dom-b" style="width:3.8%;background:#f5c518"></div></div><span class="dom-pct">3.8%</span></div>
-      <div class="dom-item"><span class="dom-sym" style="color:var(--muted)">OTROS</span><div class="dom-bw"><div class="dom-b" style="width:20.6%;background:var(--muted)"></div></div><span class="dom-pct">20.6%</span></div>
-    </div>
-  </div>
-</div>
-
-<!-- TÉCNICO -->
-<div class="page" id="page-tecnico">
-  <div class="sec-hero">
-    <div class="sec-eye">Indicadores Técnicos</div>
-    <h1 class="sec-title">Señales de <span>largo plazo</span></h1>
-  </div>
-  <div class="card">
-    <div class="card-hd"><div><div class="card-title">RSI Semanal (14) — Bitcoin</div><div class="card-sub">Relative Strength Index</div></div><div class="badge badge-up">63 — NEUTRO+</div></div>
-    <div class="zleg"><div class="zl"><div class="zl-dot" style="background:rgba(255,69,96,.5)"></div>Sobrecompra &gt;70</div><div class="zl"><div class="zl-dot" style="background:rgba(45,212,191,.5)"></div>Sobreventa &lt;30</div></div>
-    <div class="chart-body"><div class="chart-wrap" style="height:180px"><canvas id="rsiChart"></canvas></div></div>
-  </div>
-  <div class="card">
-    <div class="card-hd"><div><div class="card-title">Precio + MA50 + MA200</div><div class="card-sub">Golden Cross confirmado ✓</div></div><div class="badge badge-up">GOLDEN CROSS</div></div>
-    <div class="ai-resp"><div class="ai-av">◆</div><div class="ai-txt"><strong>Golden Cross</strong> confirmado en febrero 2024. Precio por encima de MA50 y MA200. Soporte dinámico MA200 en <strong>$61,400</strong>.</div></div>
-    <div class="chart-body"><div class="chart-wrap" style="height:180px"><canvas id="maChart"></canvas></div></div>
-  </div>
-</div>
-
-<!-- AI STUDIO -->
-<div class="page" id="page-ai">
-  <div class="sec-hero">
-    <div class="sec-eye">AI Chart Studio</div>
-    <h1 class="sec-title">Describe.<br><span>La IA genera.</span></h1>
-    <p class="sec-sub">// Próximamente con Claude API real</p>
-  </div>
-  <div class="ai-box">
-    <div class="ai-top"><div class="ai-chip">◆ AI</div><div class="ai-hint">Describe la gráfica que quieres ver</div></div>
-    <textarea class="ai-ta" id="aiInput" placeholder='Ej: "MVRV de Bitcoin con zonas de sobrecompra"&#10;Ej: "RSI semanal con señales de compra"'></textarea>
-    <div class="ai-btm">
-      <div class="sugs">
-        <button class="sug" onclick="aiGen('mvrv')">MVRV</button>
-        <button class="sug" onclick="aiGen('rsi')">RSI</button>
-        <button class="sug" onclick="aiGen('rainbow')">Rainbow</button>
-        <button class="sug" onclick="aiGen('dom')">Dominancia</button>
+    <!-- Chart area -->
+    <div class="chart-area" id="chart-area">
+      <div class="chart-canvas-wrap">
+        <div class="chart-loader" id="chart-loader">
+          <div class="spinner"></div>
+          <div class="loader-txt" id="loader-txt">Cargando datos reales...</div>
+        </div>
+        <canvas id="mainChart"></canvas>
       </div>
-      <button class="gen-btn" onclick="aiGen()">⚡ Generar</button>
     </div>
-  </div>
-  <div class="card" id="aiCard">
-    <div class="card-hd"><div><div class="card-title" id="ai-ttl">MVRV Z-Score</div><div class="card-sub">Chainmetric AI · chainmetric.live</div></div><div class="badge badge-neu" id="ai-badge">NEUTRO</div></div>
-    <div class="ai-resp"><div class="ai-av">◆</div><div class="ai-txt" id="ai-txt">Escribe lo que quieres ver y pulsa Generar.</div></div>
-    <div class="chart-body"><div class="chart-wrap" style="height:230px">
-      <div class="loader" id="ai-loader" style="opacity:0;pointer-events:none"><div class="spinner"></div><div class="loader-txt">Chainmetric AI generando...</div></div>
-      <canvas id="aiChart"></canvas>
-    </div></div>
-  </div>
-</div>
 
-</div><!-- /wrap -->
+    <!-- Source bar -->
+    <div class="source-bar">
+      <div class="src-txt" id="source-txt">Fuente: CoinGecko API · Datos en tiempo real</div>
+      <div class="src-badge" id="source-badge">● LIVE</div>
+      <div class="src-txt" style="margin-left:auto;">chainmetric.live</div>
+    </div>
 
-<div class="bnav">
-  <div class="bnav-item active" onclick="showPage('overview',null,this)"><div class="bnav-icon">📊</div><div class="bnav-lbl">Overview</div></div>
-  <div class="bnav-item" onclick="showPage('onchain',null,this)"><div class="bnav-icon">🔗</div><div class="bnav-lbl">On-Chain</div></div>
-  <div class="bnav-item" onclick="showPage('ciclos',null,this)"><div class="bnav-icon">🔄</div><div class="bnav-lbl">Ciclos</div></div>
-  <div class="bnav-item" onclick="showPage('dominancia',null,this)"><div class="bnav-icon">📈</div><div class="bnav-lbl">Dom.</div></div>
-  <div class="bnav-item" onclick="showPage('ai',null,this)"><div class="bnav-icon">✦</div><div class="bnav-lbl">AI Studio</div></div>
-</div>
+  </div><!-- /chart-panel -->
+
+</div><!-- /main -->
+</div><!-- /shell -->
 
 <script>
-// ── CHART DEFAULTS ──
 Chart.defaults.color='#3d5560';
 Chart.defaults.borderColor='#1c2535';
 Chart.defaults.font.family="'DM Mono',monospace";
 Chart.defaults.font.size=10;
 
-const TQ='#2DD4BF',GOLD='#f5c518',RED='#ff4560',PU='#a78bfa';
-const L12=['Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic','Ene','Feb','Mar','Abr'];
+const TQ='#2DD4BF',GOLD='#f5c518',RED='#ff4560',PURPLE='#a78bfa';
+let mainChart=null;
+let currentDays=90;
+let currentScale='log';
+let currentMetricId='btc-price';
+let sidebarOpen=true;
 
-// Zone plugin
-const zonePl={id:'z',beforeDraw(c,a,o){
-  if(!o?.zones?.length)return;
-  const{ctx,chartArea:{top,bottom,left,right},scales:{y}}=c;
+// ── FORMAT ──
+function fmt(n){
+  if(!n||isNaN(n))return'—';
+  if(n>=1e12)return'$'+(n/1e12).toFixed(2)+'T';
+  if(n>=1e9)return'$'+(n/1e9).toFixed(2)+'B';
+  if(n>=1e6)return'$'+(n/1e6).toFixed(2)+'M';
+  if(n>=1000)return'$'+n.toLocaleString('en',{maximumFractionDigits:0});
+  if(n>=1)return'$'+n.toFixed(2);
+  return'$'+n.toFixed(4);
+}
+function fmtDate(ts,days){
+  const d=new Date(ts);
+  if(days<=14)return d.toLocaleDateString('es',{weekday:'short',day:'numeric'});
+  if(days<=90)return d.toLocaleDateString('es',{day:'numeric',month:'short'});
+  return d.toLocaleDateString('es',{month:'short',year:'2-digit'});
+}
+
+// ── ZONE PLUGIN ──
+const zonePlugin={id:'zones',beforeDraw(chart,a,opts){
+  if(!opts?.zones?.length)return;
+  const{ctx,chartArea:{top,bottom,left,right},scales:{y}}=chart;
   if(!y)return;
-  o.zones.forEach(z=>{
+  opts.zones.forEach(z=>{
     const y1=Math.max(y.getPixelForValue(z.max),top);
     const y2=Math.min(y.getPixelForValue(z.min),bottom);
     if(y2>y1){ctx.fillStyle=z.color;ctx.fillRect(left,y1,right-left,y2-y1);}
   });
 }};
-Chart.register(zonePl);
+Chart.register(zonePlugin);
 
-function mkChart(id,labels,datasets,opts){
-  const ctx=document.getElementById(id);
-  if(!ctx)return null;
-  return new Chart(ctx,{
+// ── METRIC CONFIGS ──
+const METRICS={
+  'btc-price':{name:'Bitcoin — Precio (BTC/USD)',sub:'CoinGecko API · Datos reales · Log scale',coin:'bitcoin',type:'price',color:TQ,source:'CoinGecko API',ai:(cur,chg,hi,lo)=>`<strong>Bitcoin</strong> actualmente en <strong>${fmt(cur)}</strong>. Cambio en el período: <strong>${chg}</strong>. Máximo: <strong>${fmt(hi)}</strong> · Mínimo: <strong>${fmt(lo)}</strong>. ${chg.startsWith('+')?'Tendencia <strong>alcista</strong> en el período analizado.':'Tendencia <strong>bajista</strong> en el período analizado.'}`},
+  'eth-price':{name:'Ethereum — Precio (ETH/USD)',sub:'CoinGecko API · Datos reales',coin:'ethereum',type:'price',color:'#627eea',source:'CoinGecko API',ai:(cur,chg)=>`<strong>Ethereum</strong> en <strong>${fmt(cur)}</strong>. Cambio: <strong>${chg}</strong>.`},
+  'sol-price':{name:'Solana — Precio (SOL/USD)',sub:'CoinGecko API · Datos reales',coin:'solana',type:'price',color:'#9945ff',source:'CoinGecko API',ai:(cur,chg)=>`<strong>Solana</strong> en <strong>${fmt(cur)}</strong>. Cambio: <strong>${chg}</strong>.`},
+  'bnb-price':{name:'BNB — Precio (BNB/USD)',sub:'CoinGecko API · Datos reales',coin:'binancecoin',type:'price',color:GOLD,source:'CoinGecko API',ai:(cur,chg)=>`<strong>BNB</strong> en <strong>${fmt(cur)}</strong>. Cambio: <strong>${chg}</strong>.`},
+  'xrp-price':{name:'XRP — Precio (XRP/USD)',sub:'CoinGecko API · Datos reales',coin:'ripple',type:'price',color:TQ,source:'CoinGecko API',ai:(cur,chg)=>`<strong>XRP</strong> en <strong>${fmt(cur)}</strong>. Cambio: <strong>${chg}</strong>.`},
+  'mvrv':{name:'MVRV Z-Score — Bitcoin',sub:'Market Value vs Realized Value · Simulado (Glassnode)',coin:null,type:'simulated',color:TQ,source:'Simulado · CryptoQuant (con key)',zones:[{min:6,max:12,color:'rgba(255,69,96,0.08)'},{min:-2,max:0,color:'rgba(45,212,191,0.08)'}],ai:()=>`El <strong>MVRV Z-Score</strong> en <strong>2.14</strong> indica zona neutra-alcista. Históricamente la sobrecompra extrema (&gt;7) coincide con tops de ciclo. La acumulación óptima ocurre por debajo de <strong>0</strong>. Señal actual: <strong>sin alerta</strong>.`,data:[0.41,0.88,1.2,0.95,1.65,2.1,2.8,3.82,3.1,1.9,2.3,1.8,2.14],metrics:['2.14','3.82','0.41','+112%','—'],labels:['Abr 25','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic','Ene 26','Feb','Mar','Abr'],showZones:true},
+  'sopr':{name:'SOPR — Spent Output Profit Ratio',sub:'Beneficio/pérdida de monedas gastadas · Simulado',coin:null,type:'simulated',color:TQ,source:'Simulado · CryptoQuant (con key)',zones:[{min:1.05,max:1.2,color:'rgba(255,69,96,0.06)'},{min:0.9,max:1.0,color:'rgba(45,212,191,0.06)'}],ai:()=>`<strong>SOPR</strong> en <strong>1.034</strong> — los holders están vendiendo en beneficio moderado. Valores &gt;1 = bullish. Valores &lt;1 = los holders venden a pérdida (capitulación). Señal actual: <strong>alcista moderado</strong>.`,data:[0.99,1.01,1.02,1.00,0.99,1.01,1.03,1.02,1.04,1.05,1.03,1.02,1.034],metrics:['1.034','1.05','0.99','+0.04','—'],labels:['Abr 25','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic','Ene 26','Feb','Mar','Abr'],showZones:true},
+  'nvt':{name:'NVT Signal — Network Value to Transactions',sub:'Valoración red vs actividad económica · Simulado',coin:null,type:'simulated',color:TQ,source:'Blockchain.com + cálculo propio',ai:()=>`<strong>NVT Signal</strong> en <strong>87.4</strong> — zona saludable. NVT alto = red sobrevalorada respecto a actividad. NVT bajo = red infravalorada. Señal actual: <strong>saludable</strong>.`,data:[82,85,88,84,79,81,83,87,91,89,86,84,87.4],metrics:['87.4','91.2','79.1','+6.5%','—'],labels:['Abr 25','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic','Ene 26','Feb','Mar','Abr'],showZones:false},
+  'puell':{name:'Puell Multiple — Presión Vendedora Mineros',sub:'Ingresos mineros diarios vs MA365 · PRO',coin:null,type:'pro',color:GOLD,source:'Simulado · Glassnode PRO',ai:()=>`Métrica <strong>PRO</strong>. Actualiza a Pro para ver el Puell Multiple en tiempo real.`},
+  'reserve-risk':{name:'Reserve Risk',sub:'Convicción holders vs precio · PRO',coin:null,type:'pro',color:TQ,ai:()=>`Métrica <strong>PRO</strong>. Actualiza a Pro.`},
+  'hash-ribbons':{name:'Hash Ribbons — Señales de Mineros',sub:'MA30 vs MA60 del hashrate · PRO',coin:null,type:'pro',color:TQ,ai:()=>`Métrica <strong>PRO</strong>. Actualiza a Pro.`},
+  'realized-price':{name:'Realized Price — Precio Realizado',sub:'Precio de coste medio del mercado · Simulado',coin:null,type:'simulated',color:PURPLE,source:'Simulado · Glassnode',ai:()=>`El <strong>Realized Price</strong> (~$47,200) representa el precio al que cada BTC fue movido por última vez. El precio actual ($84,320) está <strong>$37,120 por encima</strong> — zona de profit. Señal: <strong>alcista</strong>.`,data:[62000,68000,61000,57000,63000,66000,72000,88000,95000,78000,82000,79000,84320],metrics:['$84,320','$95,000','$57,000','+36%','—'],labels:['Abr 25','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic','Ene 26','Feb','Mar','Abr'],showZones:false},
+  'sp500':{name:'S&P 500 — Índice Bursátil USA',sub:'Precio histórico · Macro overlay',coin:null,type:'simulated',color:PURPLE,source:'Simulado · FRED API (próximamente)',ai:()=>`El <strong>S&P 500</strong> en el período analizado muestra correlación con movimientos de Bitcoin. Cowen siempre contextualiza crypto con el mercado tradicional. Señal: <strong>correlación positiva</strong> con BTC en 2024–2025.`,data:[4800,4900,5100,5050,5200,5400,5600,5800,5700,5500,5600,5750,5850],metrics:['5,850','5,850','4,800','+22%','—'],labels:['Abr 25','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic','Ene 26','Feb','Mar','Abr'],showZones:false},
+  'inflation':{name:'Inflación YoY — CPI USA',sub:'Consumer Price Index interanual · PRO',coin:null,type:'pro',color:RED,ai:()=>`Métrica <strong>PRO</strong>. Actualiza a Pro.`},
+  'dxy':{name:'DXY Index — Índice Dólar',sub:'Fuerza del dólar americano · PRO',coin:null,type:'pro',color:GOLD,ai:()=>`Métrica <strong>PRO</strong>. Actualiza a Pro.`},
+  'nasdaq':{name:'NASDAQ 100',sub:'Índice tecnológico USA · PRO',coin:null,type:'pro',color:PURPLE,ai:()=>`Métrica <strong>PRO</strong>. Actualiza a Pro.`},
+  'gold':{name:'Oro (XAU/USD)',sub:'Activo refugio · PRO',coin:null,type:'pro',color:GOLD,ai:()=>`Métrica <strong>PRO</strong>. Actualiza a Pro.`},
+  'rainbow':{name:'Rainbow Chart — Power Law Model',sub:'Modelo logarítmico de valoración a largo plazo',coin:null,type:'simulated',color:'#fff',source:'Modelo propio · Power Law',ai:()=>`El precio actual de BTC (<strong>$84,320</strong>) se sitúa en la banda <strong>"Aún Barato"</strong>. El modelo Power Law predice precio justo de ~<strong>$120,000</strong> para fin de 2025. En cada top de ciclo el precio tocó la banda roja.`,data:[15000,3500,7000,10000,68000,16000,42000,100000,84320],metrics:['$84,320','$100,000','$3,500','Zona: Barato','—'],labels:['2017','2018','2019','2020','2021','2022','2023','2024','2025'],showZones:false},
+  'cycle-2024':{name:'Ciclo 2024–2026 — Post-Halving',sub:'Fases basadas en halvings históricos',coin:null,type:'simulated',color:TQ,source:'Modelo propio · Halvings',ai:()=>`Estamos en <strong>Fase 3 — Post-Halving Bull</strong> (abril 2024 → ~Q4 2025). Los ciclos 2016–2017 y 2020–2021 muestran que el ATH llega <strong>12–18 meses post-halving</strong>. Estimación ATH: <strong>Q4 2025 – Q1 2026</strong>.`,data:[42000,65000,57000,62000,100000,88000,82000,90000,78000,84320],metrics:['$84,320','$100,000','$42,000','Fase 3','BULL'],labels:['Ene 24','Abr','Jul','Oct','Ene 25','Abr','Jul','Oct','Ene 26','Abr'],showZones:false},
+  'cycle-compare':{name:'Comparativa de Ciclos — 2017 vs 2021 vs 2025',sub:'Normalizado 0–100% · PRO',coin:null,type:'pro',color:TQ,ai:()=>`Métrica <strong>PRO</strong>. Actualiza a Pro.`},
+  'halving-countdown':{name:'Halvings Bitcoin — Historial',sub:'Fecha y efecto de cada halving',coin:null,type:'simulated',color:PURPLE,source:'Datos on-chain · Blockchain.com',ai:()=>`El último halving fue el <strong>20 de abril de 2024</strong> (bloque 840,000). La recompensa pasó de 6.25 a <strong>3.125 BTC/bloque</strong>. El próximo halving estimado: <strong>2028</strong>.`,data:[1,2,3,4,5,6,7,8,9,10,12,15,20],metrics:['Abr 2024','3.125 BTC','2028 est.','4° Halving','—'],labels:['2012','2013','2014','2015','2016','2017','2018','2019','2020','2021','2022','2023','2024'],showZones:false},
+  'btc-dom':{name:'BTC Dominance — % del Market Cap Total',sub:'Dominancia histórica de Bitcoin',coin:null,type:'simulated',color:TQ,source:'CoinGecko · Cálculo propio',ai:()=>`<strong>BTC Dominance</strong> en <strong>58.3%</strong>, tendencia alcista. La Altcoin Season históricamente llega cuando la dominancia cae por debajo de <strong>40%</strong>. Aún en territorio Bitcoin Season.`,data:[52,54,56,55,58,60,63,61,58,55,58,57,58.3],metrics:['58.3%','63.1%','52.0%','BTC Season','—'],labels:['Abr 25','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic','Ene 26','Feb','Mar','Abr'],showZones:false},
+  'eth-dom':{name:'ETH Dominance — % del Market Cap Total',sub:'Dominancia histórica de Ethereum',coin:null,type:'simulated',color:'#627eea',source:'CoinGecko',ai:()=>`<strong>ETH Dominance</strong> en <strong>13.2%</strong>. Comprimida desde 2021. La rotación hacia ETH históricamente precede a la Altcoin Season.`,data:[18,17,15,14,14,13,12,13,14,15,14,13,13.2],metrics:['13.2%','18.1%','11.8%','—','—'],labels:['Abr 25','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic','Ene 26','Feb','Mar','Abr'],showZones:false},
+  'altcoin-season':{name:'Altcoin Season Index',sub:'% alts superando a BTC en 90 días · PRO',coin:null,type:'pro',color:TQ,ai:()=>`Métrica <strong>PRO</strong>. Actualiza a Pro.`},
+  'btc-eth-ratio':{name:'BTC/ETH Ratio',sub:'Relación de valor relativo · PRO',coin:null,type:'pro',color:GOLD,ai:()=>`Métrica <strong>PRO</strong>. Actualiza a Pro.`},
+  'rsi':{name:'RSI Semanal (14) — Bitcoin',sub:'Relative Strength Index',coin:null,type:'simulated',color:'#7fff6f',source:'Calculado · datos CoinGecko',zones:[{min:70,max:100,color:'rgba(255,69,96,0.08)'},{min:0,max:30,color:'rgba(45,212,191,0.08)'}],ai:()=>`<strong>RSI Semanal</strong> en <strong>63</strong> — zona neutra-alcista. El último toque de sobreventa (28) fue hace 11 meses. Próxima resistencia RSI: <strong>70</strong>. Señal: <strong>sin sobrecompra</strong>.`,data:[32,45,42,38,52,58,64,73,68,54,60,57,63],metrics:['63','73','28','+96%','—'],labels:['Abr 25','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic','Ene 26','Feb','Mar','Abr'],showZones:true},
+  'ma-cross':{name:'Precio + MA50 + MA200 — Golden Cross',sub:'Medias móviles 50 y 200 períodos',coin:null,type:'simulated',color:TQ,source:'Calculado · datos CoinGecko',ai:()=>`El <strong>Golden Cross</strong> (MA50 > MA200) se confirmó en <strong>febrero 2024</strong>. El precio lleva <strong>14 meses</strong> por encima de ambas medias. MA200 como soporte dinámico en <strong>$61,400</strong>. Señal: <strong>alcista de largo plazo</strong>.`,data:[62000,68000,61000,57000,63000,66000,72000,88000,95000,78000,82000,79000,84320],metrics:['$84,320','$95,000','$57,000','Golden Cross','—'],labels:['Abr 25','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic','Ene 26','Feb','Mar','Abr'],showZones:false},
+  'macd':{name:'MACD',sub:'Moving Average Convergence Divergence · PRO',coin:null,type:'pro',color:PURPLE,ai:()=>`Métrica <strong>PRO</strong>. Actualiza a Pro.`},
+  'bollinger':{name:'Bollinger Bands',sub:'Volatilidad y tendencia · PRO',coin:null,type:'pro',color:GOLD,ai:()=>`Métrica <strong>PRO</strong>. Actualiza a Pro.`},
+  'ai-studio':{name:'✦ AI Chart Studio',sub:'Genera cualquier gráfica con IA · PRO',coin:null,type:'ai',ai:()=>`Describe en lenguaje natural la gráfica que quieres y la IA la genera automáticamente.`}
+};
+
+// ── LOAD METRIC ──
+async function loadMetric(id){
+  currentMetricId=id;
+
+  // Update sidebar active state
+  document.querySelectorAll('.sb-item').forEach(el=>{
+    el.classList.toggle('active', el.getAttribute('onclick')===`loadMetric('${id}')`);
+  });
+
+  const cfg=METRICS[id];
+  if(!cfg)return;
+
+  // Update header
+  document.getElementById('chart-name').textContent=cfg.name;
+  document.getElementById('chart-sub').textContent=cfg.sub;
+
+  // PRO gate
+  if(cfg.type==='pro'){
+    showProGate(cfg.name);
+    return;
+  }
+
+  // AI Studio
+  if(cfg.type==='ai'){
+    showAIStudio();
+    return;
+  }
+
+  // Show normal chart area
+  showChartArea();
+
+  // Zones
+  const zoneBar=document.getElementById('zone-bar');
+  zoneBar.style.display=cfg.showZones?'flex':'none';
+
+  // Source
+  document.getElementById('source-txt').textContent=`Fuente: ${cfg.source||'CoinGecko API'}`;
+
+  // Load
+  if(cfg.coin){
+    await loadCoinGecko(id, cfg);
+  } else {
+    loadSimulated(id, cfg);
+  }
+}
+
+// ── COINGECKO REAL DATA ──
+async function loadCoinGecko(id, cfg){
+  showLoader();
+  try{
+    const r=await fetch(`https://api.coingecko.com/api/v3/coins/${cfg.coin}/market_chart?vs_currency=usd&days=${currentDays}&precision=2`);
+    const d=await r.json();
+    const pts=d.prices;
+    const vols=d.total_volumes;
+    const step=Math.max(1,Math.floor(pts.length/14));
+    const labels=pts.map((p,i)=>i%step===0?fmtDate(p[0],currentDays):'');
+    const vals=pts.map(p=>p[1]);
+    const cur=vals[vals.length-1];
+    const hi=Math.max(...vals);
+    const lo=Math.min(...vals);
+    const chg=((cur-vals[0])/vals[0]*100);
+    const chgStr=(chg>=0?'+':'')+chg.toFixed(2)+'%';
+    const lastVol=vols[vols.length-1]?.[1];
+    const color=chg>=0?TQ:RED;
+
+    // Update metrics
+    setMet('m-price',fmt(cur),chg>=0?TQ:RED);
+    setMet('m-hi',fmt(hi),RED);
+    setMet('m-lo',fmt(lo),TQ);
+    const chgEl=document.getElementById('m-chg');
+    chgEl.textContent=chgStr;
+    chgEl.style.color=chg>=0?TQ:RED;
+    setMet('m-vol',lastVol?fmt(lastVol):'—','var(--muted)');
+
+    // AI analysis
+    document.getElementById('ai-analysis').innerHTML=cfg.ai(cur,chgStr,hi,lo);
+
+    // Build chart
+    buildChart(labels,vals,color,currentScale==='log',cfg.zones);
+    hideLoader();
+  }catch(e){
+    hideLoader();
+    document.getElementById('ai-analysis').innerHTML='Error al cargar datos. Comprueba tu conexión.';
+  }
+}
+
+// ── SIMULATED DATA ──
+function loadSimulated(id, cfg){
+  showLoader();
+  setTimeout(()=>{
+    const vals=cfg.data||[];
+    const labels=cfg.labels||vals.map((_,i)=>i+'');
+    const mets=cfg.metrics||['—','—','—','—','—'];
+    setMet('m-price',mets[0],TQ);
+    setMet('m-hi',mets[1],RED);
+    setMet('m-lo',mets[2],TQ);
+    setMet('m-chg',mets[3],mets[3]?.startsWith('+')?TQ:RED);
+    setMet('m-vol',mets[4],'var(--muted)');
+    document.getElementById('ai-analysis').innerHTML=cfg.ai('—','—','—','—');
+    buildChart(labels,vals,cfg.color,currentScale==='log'&&vals[0]>10,cfg.zones);
+    document.getElementById('source-badge').textContent='○ SIM';
+    hideLoader();
+  },600);
+}
+
+function setMet(id,val,color){
+  const el=document.getElementById(id);
+  if(el){el.textContent=val;el.style.color=color;}
+}
+
+// ── BUILD CHART ──
+function buildChart(labels,data,color,log,zones){
+  if(mainChart){mainChart.destroy();mainChart=null;}
+  const ctx=document.getElementById('mainChart').getContext('2d');
+  const grad=ctx.createLinearGradient(0,0,0,400);
+  grad.addColorStop(0,color+'22');
+  grad.addColorStop(1,'rgba(0,0,0,0)');
+
+  mainChart=new Chart(ctx,{
     type:'line',
-    data:{labels,datasets},
+    data:{labels,datasets:[{
+      label:'',data,
+      borderColor:color,backgroundColor:grad,
+      borderWidth:2.5,fill:true,tension:0.3,
+      pointRadius:data.length>50?0:3,
+      pointHoverRadius:5,
+      pointBackgroundColor:color,pointBorderColor:'#07090d',pointBorderWidth:1.5
+    }]},
     options:{
       responsive:true,maintainAspectRatio:false,
-      animation:{duration:500},
+      animation:{duration:500,easing:'easeInOutQuart'},
       interaction:{mode:'index',intersect:false},
       plugins:{
-        legend:opts?.legend?{labels:{color:'#3d5560',boxWidth:12,padding:10,font:{size:9}}}:{display:false},
-        tooltip:{backgroundColor:'#111820',borderColor:'#1c2535',borderWidth:1,titleColor:TQ,bodyColor:'#ddeae8',padding:8},
-        z:{zones:opts?.zones||[]}
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'#0c1018',borderColor:'#1c2535',borderWidth:1,
+          titleColor:color,bodyColor:'#ddeae8',padding:10,
+          callbacks:{label:ctx=>{
+            const v=ctx.raw;
+            if(v>100)return' '+fmt(v);
+            return' '+v;
+          }}
+        },
+        zones:{zones:zones||[]}
       },
       scales:{
-        x:{grid:{color:'rgba(28,37,53,0.5)'},ticks:{color:'#3d5560',maxRotation:0,font:{size:9}},border:{color:'#1c2535'}},
-        y:{type:opts?.log?'logarithmic':'linear',min:opts?.yMin,max:opts?.yMax,
-          grid:{color:'rgba(28,37,53,0.5)'},
-          ticks:{color:'#3d5560',font:{size:9},callback:opts?.yFmt||(v=>v)},
-          border:{color:'#1c2535'}}
+        x:{grid:{color:'rgba(28,37,53,0.6)'},ticks:{color:'#3d5560',maxRotation:0,font:{size:9}},border:{color:'#1c2535'}},
+        y:{
+          type:log?'logarithmic':'linear',
+          grid:{color:'rgba(28,37,53,0.6)'},
+          ticks:{color:'#3d5560',font:{size:9},callback:v=>{
+            if(v>=1e6)return'$'+(v/1e6).toFixed(0)+'M';
+            if(v>=1000)return'$'+(v/1000).toFixed(0)+'k';
+            return v>=1?'$'+v.toFixed(2):v;
+          }},
+          border:{color:'#1c2535'}
+        }
       }
     }
   });
 }
 
-function ds(label,data,color,fill,bw,dash,pr){
-  return{label,data,borderColor:color,
-    backgroundColor:fill?color+'18':'transparent',
-    borderWidth:bw||2,borderDash:dash||[],
-    pointRadius:pr??0,pointHoverRadius:5,
-    pointBackgroundColor:color,pointBorderColor:'#07090d',pointBorderWidth:1.5,
-    fill:!!fill,tension:0.35};
-}
+// ── SHOW/HIDE ──
+function showLoader(){document.getElementById('chart-loader').classList.add('show');}
+function hideLoader(){document.getElementById('chart-loader').classList.remove('show');}
 
-// ── HELPERS ──
-function fmt(n){
-  if(!n||isNaN(n))return '—';
-  if(n>=1e9)return '$'+(n/1e9).toFixed(1)+'B';
-  if(n>=1e6)return '$'+(n/1e6).toFixed(1)+'M';
-  if(n>=1000)return '$'+n.toLocaleString('en',{maximumFractionDigits:0});
-  if(n>=1)return '$'+n.toFixed(2);
-  return '$'+n.toFixed(4);
-}
-function fmtDate(ts,days){
-  const d=new Date(ts);
-  if(days<=7)return d.toLocaleDateString('es',{weekday:'short',day:'numeric'});
-  if(days<=90)return d.toLocaleDateString('es',{day:'numeric',month:'short'});
-  return d.toLocaleDateString('es',{month:'short',year:'2-digit'});
-}
+let proGateEl=null;
+function showProGate(name){
+  document.getElementById('source-badge').textContent='★ PRO';
+  document.getElementById('ai-analysis').innerHTML=`Esta métrica requiere plan <strong>Pro</strong>. Actualiza para acceder a <strong>${name}</strong> y todas las métricas avanzadas.`;
 
-// ── STABLECOINS TO EXCLUDE ──
-const STABLES = ['tether','usd-coin','dai','trueusd','first-digital-usd','ethena-usde','usds','paypal-usd','frax','tether-gold'];
-
-// ── TOP 10 COINS (cached) ──
-let top10Coins = [];
-let ovChart = null;
-let ovDays = 30;
-let activeCoin = 'bitcoin';
-
-async function loadTop10() {
-  try {
-    const r = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=30&page=1&sparkline=true&price_change_percentage=24h');
-    if(!r.ok) throw new Error('API '+r.status);
-    const all = await r.json();
-    // Filter out stablecoins
-    top10Coins = all.filter(c => !STABLES.includes(c.id)).slice(0,10);
-    renderTop10();
-    buildCoinSelector();
-    // Load chart for first coin (BTC)
-    loadOv(30);
-  } catch(e) {
-    console.error('Top10 error:',e);
-    document.getElementById('top10-list').innerHTML = '<div style="padding:1rem;text-align:center;font-family:\'DM Mono\',monospace;font-size:.62rem;color:var(--muted)">Error al cargar datos. Verifica tu conexión.</div>';
-  }
-}
-
-function fmtMC(n) {
-  if(n>=1e12) return '$'+(n/1e12).toFixed(2)+'T';
-  if(n>=1e9)  return '$'+(n/1e9).toFixed(1)+'B';
-  if(n>=1e6)  return '$'+(n/1e6).toFixed(0)+'M';
-  return '$'+n;
-}
-
-function renderTop10() {
-  const list = document.getElementById('top10-list');
-  list.innerHTML = top10Coins.map((c,i) => {
-    const chg = c.price_change_percentage_24h || 0;
-    const chgColor = chg >= 0 ? 'var(--tq)' : 'var(--red)';
-    const chgSign = chg >= 0 ? '+' : '';
-    // Mini sparkline using canvas
-    return `<div class="top10-row ${c.id===activeCoin?'selected':''}" onclick="selectCoin('${c.id}','${c.symbol.toUpperCase()}',this)">
-      <span class="top10-rank">${i+1}</span>
-      <div class="top10-icon"><img src="${c.image}" onerror="this.style.display='none'" loading="lazy"></div>
-      <div class="top10-name">
-        <div class="top10-sym">${c.symbol.toUpperCase()}</div>
-        <div class="top10-fullname">${c.name}</div>
-      </div>
-      <canvas class="top10-spark" id="spark-${c.id}"></canvas>
-      <div class="top10-price">${fmt(c.current_price)}</div>
-      <div class="top10-chg" style="color:${chgColor}">${chgSign}${chg.toFixed(2)}%</div>
-      <div class="top10-mc">${fmtMC(c.market_cap)}</div>
+  const area=document.getElementById('chart-area');
+  area.innerHTML=`
+    <div class="pro-gate">
+      <div class="pg-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f5c518" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+      <div class="pg-title">Métrica Pro</div>
+      <div class="pg-sub">${name} está disponible en el plan Pro. Accede a más de 20 métricas on-chain, macro y ciclos avanzados.</div>
+      <a href="login.html" class="pg-btn">Actualizar a Pro — €9/mes →</a>
     </div>`;
-  }).join('');
+}
 
-  // Draw sparklines
-  top10Coins.forEach(c => {
-    const canvas = document.getElementById('spark-'+c.id);
-    if(!canvas || !c.sparkline_in_7d?.price) return;
-    const data = c.sparkline_in_7d.price;
-    const chg = c.price_change_percentage_24h || 0;
-    const color = chg >= 0 ? '#2DD4BF' : '#ff4560';
-    drawSparkline(canvas, data, color);
-  });
+function showAIStudio(){
+  const area=document.getElementById('chart-area');
+  area.innerHTML=`
+    <div class="ai-studio-wrap">
+      <div class="ai-input-box">
+        <div class="ai-input-top">
+          <div class="ai-chip">◆ Chainmetric AI</div>
+          <div class="ai-hint-txt">Describe la gráfica que quieres generar</div>
+        </div>
+        <textarea class="ai-textarea" id="ai-input" placeholder='Ej: "Muéstrame el MVRV de Bitcoin con zonas de sobrecompra en los últimos 2 años"&#10;Ej: "Compara el ciclo actual con 2017 y 2021"&#10;Ej: "RSI semanal con señales de compra y venta"'></textarea>
+        <div class="ai-bottom-bar">
+          <div class="ai-sugs">
+            <button class="ai-sug">MVRV + zonas</button>
+            <button class="ai-sug">Ciclos comparados</button>
+            <button class="ai-sug">RSI + señales</button>
+            <button class="ai-sug">Rainbow Chart</button>
+            <button class="ai-sug">Dominancia BTC</button>
+          </div>
+          <button class="ai-gen-btn">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Generar
+          </button>
+        </div>
+      </div>
+      <div style="flex:1;background:var(--s1);border:1px solid var(--bd);border-radius:6px;display:flex;align-items:center;justify-content:center;padding:2rem;text-align:center;">
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted);margin-bottom:.5rem;">◆ Chainmetric AI · Powered by Claude</div>
+          <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:#fff;margin-bottom:.4rem;">Describe. La IA genera.</div>
+          <div style="font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted);">Escribe tu consulta arriba y pulsa Generar</div>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('ai-analysis').innerHTML='El <strong>AI Chart Studio</strong> genera cualquier gráfica en lenguaje natural. Describe la métrica, el período y los overlays que quieres.';
+}
 
-  // Update snapshot
-  const btc = top10Coins.find(c=>c.id==='bitcoin');
-  const totalMC = top10Coins.reduce((s,c)=>s+c.market_cap,0)*1.15; // approx
-  if(btc) {
-    const dom = (btc.market_cap/totalMC*100).toFixed(1);
-    document.getElementById('snap-dom').textContent = dom+'%';
-    document.getElementById('snap-dom-s').textContent = '▲ BTC Dominance';
-    document.getElementById('snap-dom-b').style.width = dom+'%';
+function showChartArea(){
+  const area=document.getElementById('chart-area');
+  if(!document.getElementById('mainChart')){
+    area.innerHTML=`<div class="chart-canvas-wrap"><div class="chart-loader show" id="chart-loader"><div class="spinner"></div><div class="loader-txt" id="loader-txt">Cargando...</div></div><canvas id="mainChart"></canvas></div>`;
   }
-  document.getElementById('snap-mc').textContent = fmtMC(top10Coins.reduce((s,c)=>s+c.market_cap,0));
-  document.getElementById('snap-mc-s').textContent = '▲ Top 10 cripto';
+  document.getElementById('source-badge').textContent='● LIVE';
 }
 
-function drawSparkline(canvas, data, color) {
-  const ctx = canvas.getContext('2d');
-  const w = canvas.width = canvas.offsetWidth || 52;
-  const h = canvas.height = canvas.offsetHeight || 24;
-  const min = Math.min(...data), max = Math.max(...data);
-  const range = max - min || 1;
-  ctx.clearRect(0,0,w,h);
-  ctx.beginPath();
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1.5;
-  data.forEach((v,i) => {
-    const x = (i/(data.length-1))*w;
-    const y = h - ((v-min)/range)*(h-2) - 1;
-    i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
-  });
-  ctx.stroke();
-}
-
-function buildCoinSelector() {
-  const sel = document.getElementById('coin-selector');
-  sel.innerHTML = top10Coins.map(c => `
-    <div class="coin-pill ${c.id===activeCoin?'active':''}" id="pill-${c.id}" onclick="selectCoin('${c.id}','${c.symbol.toUpperCase()}',null)">
-      <img src="${c.image}" onerror="this.style.display='none'" loading="lazy">
-      ${c.symbol.toUpperCase()}
-    </div>
-  `).join('');
-}
-
-function selectCoin(id, sym, rowEl) {
-  activeCoin = id;
-  // Update pills
-  document.querySelectorAll('.coin-pill').forEach(p=>p.classList.remove('active'));
-  const pill = document.getElementById('pill-'+id);
-  if(pill) pill.classList.add('active');
-  // Update rows
-  document.querySelectorAll('.top10-row').forEach(r=>r.classList.remove('selected'));
-  if(rowEl) rowEl.classList.add('selected');
-  // Load chart
-  loadOv(ovDays);
-}
-
-async function loadOv(days) {
-  ovDays = days;
-  const loader = document.getElementById('ov-loader');
-  loader.classList.remove('hide');
-  const coin = activeCoin || 'bitcoin';
-  const coinData = top10Coins.find(c=>c.id===coin);
-  const name = coinData ? coinData.name : coin;
-  document.getElementById('ov-title').innerHTML = `<span class="ldot" style="margin-right:5px"></span>${name} — Precio USD`;
-  try {
-    const r = await fetch(`https://api.coingecko.com/api/v3/coins/${coin}/market_chart?vs_currency=usd&days=${days}&precision=2`);
-    if(!r.ok) throw new Error('API '+r.status);
-    const d = await r.json();
-    const pts = d.prices;
-    const step = Math.max(1, Math.floor(pts.length/10));
-    const labels = pts.map((p,i) => i%step===0 ? fmtDate(p[0],days) : '');
-    const vals = pts.map(p=>p[1]);
-    const cur = vals[vals.length-1], hi = Math.max(...vals), lo = Math.min(...vals);
-    const chg = ((cur-vals[0])/vals[0]*100);
-    document.getElementById('ov-p').textContent = fmt(cur);
-    document.getElementById('ov-h').textContent = fmt(hi);
-    document.getElementById('ov-l').textContent = fmt(lo);
-    document.getElementById('ov-mc').textContent = coinData ? fmtMC(coinData.market_cap) : '—';
-    const cel = document.getElementById('ov-c');
-    cel.textContent = (chg>=0?'+':'')+chg.toFixed(2)+'%';
-    cel.style.color = chg>=0 ? TQ : RED;
-    const badge = document.getElementById('ov-badge');
-    badge.textContent = (chg>=0?'+':'')+chg.toFixed(2)+'%';
-    badge.className = 'badge '+(chg>=0?'badge-up':'badge-dn');
-    const color = chg>=0 ? TQ : RED;
-    const ctx2 = document.getElementById('ovChart').getContext('2d');
-    const grad = ctx2.createLinearGradient(0,0,0,240);
-    grad.addColorStop(0, chg>=0?'rgba(45,212,191,.18)':'rgba(255,69,96,.18)');
-    grad.addColorStop(1,'rgba(0,0,0,0)');
-    if(ovChart){ovChart.destroy();ovChart=null;}
-    ovChart = new Chart(ctx2, {
-      type:'line',
-      data:{labels, datasets:[{
-        label:`${name} USD`,data:vals,borderColor:color,backgroundColor:grad,
-        borderWidth:2,pointRadius:0,pointHoverRadius:5,fill:true,tension:0.3
-      }]},
-      options:{responsive:true,maintainAspectRatio:false,animation:{duration:500},
-        interaction:{mode:'index',intersect:false},
-        plugins:{legend:{display:false},tooltip:{backgroundColor:'#111820',borderColor:'#1c2535',borderWidth:1,titleColor:color,bodyColor:'#ddeae8',padding:8,callbacks:{label:c=>` ${fmt(c.raw)}`}}},
-        scales:{
-          x:{grid:{color:'rgba(28,37,53,.5)'},ticks:{color:'#3d5560',maxRotation:0,font:{size:9}},border:{color:'#1c2535'}},
-          y:{grid:{color:'rgba(28,37,53,.5)'},ticks:{color:'#3d5560',font:{size:9},callback:v=>v>=1000?'$'+(v/1000).toFixed(0)+'k':'$'+v},border:{color:'#1c2535'}}
-        }}
-    });
-  } catch(e) {
-    document.getElementById('ov-p').textContent = 'Error API';
-    console.error('OV error:',e);
-  }
-  loader.classList.add('hide');
-}
-
-function ovTF(btn, days) {
+// ── CONTROLS ──
+function setTF(btn,days){
+  currentDays=days;
   document.querySelectorAll('.tf-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  loadOv(days);
+  const cfg=METRICS[currentMetricId];
+  if(cfg?.coin) loadCoinGecko(currentMetricId,cfg);
+}
+function setScale(s){
+  currentScale=s;
+  document.getElementById('lin-btn').classList.toggle('active',s==='lin');
+  document.getElementById('log-btn').classList.toggle('active',s==='log');
+  if(mainChart){
+    mainChart.options.scales.y.type=s==='log'?'logarithmic':'linear';
+    mainChart.update();
+  }
+}
+function updateOverlay(){}
+function updateMA(){}
+function downloadChart(){
+  if(!mainChart)return;
+  const a=document.createElement('a');
+  a.href=document.getElementById('mainChart').toDataURL('image/png');
+  a.download='chainmetric-'+currentMetricId+'.png';
+  a.click();
+}
+function toggleFullscreen(){
+  if(!document.fullscreenElement) document.getElementById('chart-panel').requestFullscreen?.();
+  else document.exitFullscreen?.();
 }
 
-async function loadTicker() {
-  // Ticker now handled by top10 table — just refresh it
-  if(top10Coins.length > 0) {
-    try {
-      const ids = top10Coins.map(c=>c.id).join(',');
-      const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_market_cap=true`);
-      if(!r.ok) return;
-      const d = await r.json();
-      top10Coins.forEach(c => {
-        if(d[c.id]) {
-          c.current_price = d[c.id].usd;
-          c.price_change_percentage_24h = d[c.id].usd_24h_change;
-          c.market_cap = d[c.id].usd_market_cap;
-        }
-      });
-      renderTop10();
-    } catch(e) {}
+// ── SIDEBAR ──
+function toggleSidebar(){
+  sidebarOpen=!sidebarOpen;
+  const sb=document.getElementById('sidebar');
+  const tog=document.getElementById('sb-toggle');
+  sb.classList.toggle('collapsed',!sidebarOpen);
+  tog.textContent=sidebarOpen?'◀':'▶';
+  tog.style.left=sidebarOpen?'var(--sb-width)':'0';
+}
+function toggleCat(header){
+  header.parentElement.classList.toggle('open');
+}
+function switchSection(section,btn){
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  // Open relevant sidebar category
+  const catMap={crypto:'cat-crypto',onchain:'cat-onchain',macro:'cat-macro',cycles:'cat-cycles',dominance:'cat-dominance',technical:'cat-technical',ai:'cat-ai'};
+  const catId=catMap[section];
+  if(catId){
+    document.querySelectorAll('.sb-cat').forEach(c=>c.classList.remove('open'));
+    const cat=document.getElementById(catId);
+    if(cat)cat.classList.add('open');
+    document.getElementById('sb-scroll').scrollTop=cat?.offsetTop||0;
+  }
+  // Load first metric of section
+  const firstItem=document.querySelector(`#${catId} .sb-item`);
+  if(firstItem){
+    const onclick=firstItem.getAttribute('onclick');
+    const match=onclick?.match(/loadMetric\('(.+?)'\)/);
+    if(match)loadMetric(match[1]);
   }
 }
 
-// ── STATIC CHARTS ──
-function buildStaticCharts(){
-  mkChart('mvrvChart',L12,[
-    ds('MVRV',[ 0.41,0.88,1.2,0.95,1.65,2.1,2.8,3.82,3.1,1.9,2.3,1.8,2.14],TQ,true,2.5),
-    ds('MA 12s',[0.55,0.72,0.98,1.05,1.25,1.6,1.95,2.45,2.8,2.4,2.2,2.05,1.95],GOLD,false,1.5,[5,4])
-  ],{yMin:-1,yMax:10,zones:[{min:6,max:11,color:'rgba(255,69,96,0.08)'},{min:-2,max:0,color:'rgba(45,212,191,0.08)'}]});
-
-  mkChart('rainbowChart',['2017','2018','2019','2020','2021','2022','2023','2024','2025'],[
-    ds('BTC',[15000,3500,7000,10000,68000,16000,42000,100000,84320],'#fff',false,2.5,[],3),
-    ds('Power Law',[4000,7000,11000,18000,35000,55000,80000,120000,160000],GOLD,false,1.5,[6,3])
-  ],{log:true,yFmt:v=>v>=1000?'$'+(v/1000).toFixed(0)+'k':'$'+v});
-
-  mkChart('cycleChart',['Ene 24','Abr','Jul','Oct','Ene 25','Abr','Jul','Oct','Ene 26','Abr'],[
-    ds('BTC',[42000,65000,57000,62000,100000,88000,82000,90000,78000,84320],TQ,true,2.5)
-  ],{yFmt:v=>'$'+(v/1000).toFixed(0)+'k'});
-
-  mkChart('cycleCompChart',['M1','M2','M3','M4','M5','M6','M7','M8','M9','M10','M11','M12','M13','M14','M15','M16'],[
-    ds('2017',[5,8,12,18,25,35,50,70,100,85,60,40,20,10,5,3],GOLD,false,1.5),
-    ds('2021',[8,12,18,28,40,60,80,95,100,70,45,25,12,6,4,2],PU,false,1.5),
-    ds('2025',[10,15,25,55,90,75,65,75,60,65,null,null,null,null,null,null],TQ,false,2)
-  ],{yMin:0,yMax:110,legend:true,yFmt:v=>v+'%'});
-
-  mkChart('domChart',L12,[
-    ds('BTC',[52,54,56,55,58,60,63,61,58,55,58,57,58.3],TQ,true),
-    ds('ETH',[18,17,15,14,14,13,12,13,14,15,14,13,13.2],PU,false,1.5,[4,3]),
-    ds('Alts',[30,29,29,31,28,27,25,26,28,30,28,30,28.5],GOLD,false,1.2,[2,4])
-  ],{yMin:0,yMax:80,legend:true,yFmt:v=>v+'%'});
-
-  mkChart('rsiChart',L12,[
-    ds('RSI',[32,45,42,38,52,58,64,73,68,54,60,57,63],'#7fff6f',true,2.5)
-  ],{yMin:0,yMax:100,zones:[{min:70,max:100,color:'rgba(255,69,96,0.08)'},{min:0,max:30,color:'rgba(45,212,191,0.08)'}]});
-
-  mkChart('maChart',L12,[
-    ds('BTC',[62000,68000,61000,57000,63000,66000,72000,88000,95000,78000,82000,79000,84320],TQ,true),
-    ds('MA50',[58000,61000,63000,62000,61000,63000,65000,70000,78000,82000,82000,81000,79200],TQ,false,1.5,[5,4]),
-    ds('MA200',[42000,45000,48000,51000,53000,55000,58000,62000,66000,70000,73000,75000,61400],RED,false,1.5,[8,4])
-  ],{legend:true,yFmt:v=>'$'+(v/1000).toFixed(0)+'k'});
-
-  // AI initial chart
-  buildAiChart('mvrv');
-}
-
-// ── AI CHARTS ──
-let aiChart=null;
-const aiCfg={
-  mvrv:{ttl:'MVRV Z-Score',badge:'2.14 — NEUTRO',bc:'badge-neu',txt:'MVRV en <strong>2.14</strong> — sin señales de top. Sobrecompra extrema &gt;7.',data:[0.41,0.88,1.2,0.95,1.65,2.1,2.8,3.82,3.1,1.9,2.3,1.8,2.14],color:TQ,zones:[{min:6,max:11,color:'rgba(255,69,96,0.08)'},{min:-2,max:0,color:'rgba(45,212,191,0.08)'}]},
-  rsi:{ttl:'RSI Semanal (14)',badge:'63 — NEUTRO+',bc:'badge-up',txt:'RSI en <strong>63</strong>. Rebote desde sobreventa. Próxima resistencia: <strong>70</strong>.',data:[32,45,42,38,52,58,64,73,68,54,60,57,63],color:'#7fff6f',zones:[{min:70,max:100,color:'rgba(255,69,96,0.08)'},{min:0,max:30,color:'rgba(45,212,191,0.08)'}]},
-  rainbow:{ttl:'Rainbow Chart — Power Law',badge:'ZONA BARATA',bc:'badge-up',txt:'BTC en <strong>$84,320</strong> — banda "Aún Barato". Estimado ~<strong>$120k</strong> fin 2025.',data:[15000,3500,7000,10000,68000,16000,42000,100000,84320],color:'#fff',zones:[]},
-  dom:{ttl:'BTC Dominance 12M',badge:'58.3% BTC',bc:'badge-up',txt:'Dominancia BTC en <strong>58.3%</strong>. Altseason históricamente llega cuando BTC &lt;40%.',data:[52,54,56,55,58,60,63,61,58,55,58,57,58.3],color:TQ,zones:[]}
-};
-
-function buildAiChart(key){
-  const c=aiCfg[key];if(!c)return;
-  document.getElementById('ai-ttl').textContent=c.ttl;
-  document.getElementById('ai-badge').textContent=c.badge;
-  document.getElementById('ai-badge').className='badge '+c.bc;
-  document.getElementById('ai-txt').innerHTML=c.txt;
-  const labels=c.data.length===9?['2017','2018','2019','2020','2021','2022','2023','2024','2025']:L12;
-  if(aiChart){aiChart.destroy();aiChart=null;}
-  aiChart=new Chart(document.getElementById('aiChart'),{
-    type:'line',
-    data:{labels,datasets:[ds(c.ttl,c.data,c.color,true,2.5,[],3)]},
-    options:{responsive:true,maintainAspectRatio:false,animation:{duration:500},interaction:{mode:'index',intersect:false},
-      plugins:{legend:{display:false},tooltip:{backgroundColor:'#111820',borderColor:'#1c2535',borderWidth:1,titleColor:c.color,bodyColor:'#ddeae8',padding:8},z:{zones:c.zones}},
-      scales:{x:{grid:{color:'rgba(28,37,53,.5)'},ticks:{color:'#3d5560',maxRotation:0,font:{size:9}},border:{color:'#1c2535'}},
-        y:{grid:{color:'rgba(28,37,53,.5)'},ticks:{color:'#3d5560',font:{size:9},callback:v=>typeof v==='number'&&v>1000?'$'+(v/1000).toFixed(0)+'k':v},border:{color:'#1c2535'}}}}
+// ── SEARCH ──
+function filterMetrics(query){
+  const q=query.toLowerCase();
+  document.querySelectorAll('.sb-item').forEach(item=>{
+    const name=item.querySelector('.sb-name')?.textContent.toLowerCase()||'';
+    const desc=item.querySelector('.sb-desc')?.textContent.toLowerCase()||'';
+    item.style.display=(name.includes(q)||desc.includes(q))?'flex':'none';
   });
-}
-
-function aiGen(key){
-  if(!key){
-    const txt=document.getElementById('aiInput').value.toLowerCase();
-    if(txt.includes('rsi'))key='rsi';
-    else if(txt.includes('rainbow')||txt.includes('power'))key='rainbow';
-    else if(txt.includes('domin'))key='dom';
-    else key='mvrv';
+  document.querySelectorAll('.sb-cat').forEach(cat=>{
+    const visible=[...cat.querySelectorAll('.sb-item')].some(i=>i.style.display!=='none');
+    cat.style.display=visible?'':'none';
+    if(q&&visible)cat.classList.add('open');
+  });
+  if(!q){
+    document.querySelectorAll('.sb-cat').forEach(cat=>cat.style.display='');
   }
-  const loader=document.getElementById('ai-loader');
-  loader.style.opacity='1';loader.style.pointerEvents='all';
-  setTimeout(()=>{buildAiChart(key);loader.style.opacity='0';loader.style.pointerEvents='none';},800);
 }
 
-document.getElementById('aiInput').addEventListener('keydown',e=>{
-  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();aiGen();}
-});
-
-// ── NAVIGATION ──
-function showPage(id,tabBtn,navBtn){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
-  if(tabBtn){document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));tabBtn.classList.add('active');}
-  if(navBtn){document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));navBtn.classList.add('active');}
-  window.scrollTo({top:0,behavior:'smooth'});
+// ── TICKER ──
+async function loadTicker(){
+  try{
+    const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true');
+    const d=await r.json();
+    if(d.bitcoin){
+      const p=d.bitcoin.usd,c=d.bitcoin.usd_24h_change;
+      const el=document.getElementById('btc-ticker');
+      el.textContent=`BTC $${p.toLocaleString('en',{maximumFractionDigits:0})} ${c>=0?'+':''}${c.toFixed(2)}%`;
+      el.style.color=c>=0?TQ:RED;
+    }
+  }catch(e){}
 }
 
 // ── INIT ──
-buildStaticCharts();
-loadTop10();
-setInterval(loadTicker, 60000);
-
-// ── MODEL NAVIGATION ──
-function setModel(btn, key) {
-  document.querySelectorAll('.mtab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.model-panel').forEach(p=>p.classList.remove('active'));
-  document.getElementById('model-'+key).classList.add('active');
-  if(key==='logregression'&&!lrLoaded) loadLogRegression();
-  if(key==='dca'&&!dcaLoaded) runDCA();
-  if(key==='risk'&&!riskLoaded) loadRiskModel();
-  if(key==='flippening'&&!flipLoaded) loadFlippening();
-  if(key==='roi'&&!roiLoaded) loadROI();
-  if(key==='mpt') buildMPT();
-  if(key==='macro') buildMacro();
-  if(key==='exit') buildExitStrategy();
-}
-let lrLoaded=false,dcaLoaded=false,riskLoaded=false,flipLoaded=false,roiLoaded=false;
-
-// ── LOG REGRESSION ──
-async function loadLogRegression(){
-  lrLoaded=true;
-  const loader=document.getElementById('lr-loader');loader.classList.remove('hide');
-  try{
-    const r=await fetch('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=1825&precision=2');
-    if(!r.ok)throw new Error('API');
-    const d=await r.json();const prices=d.prices;
-    const genesis=new Date('2009-01-03').getTime();
-    const labels=[],priceData=[],fairValues=[],bandUpper=[],bandLower=[];
-    const step=Math.max(1,Math.floor(prices.length/60));
-    prices.forEach((p,i)=>{
-      if(i%step!==0)return;
-      const days=(p[0]-genesis)/(1000*60*60*24);
-      const fv=Math.pow(10,5.84*Math.log10(days)-17.01);
-      labels.push(new Date(p[0]).toLocaleDateString('es',{month:'short',year:'2-digit'}));
-      priceData.push(p[1]);fairValues.push(fv);bandUpper.push(fv*3.5);bandLower.push(fv*0.35);
-    });
-    const cur=priceData[priceData.length-1],fair=fairValues[fairValues.length-1];
-    const pct=((cur-fair)/fair*100);
-    const band=cur>fair*2.5?'FOMO':cur>fair*1.5?'Hold':cur>fair*0.7?'Barato':'Compra Max';
-    document.getElementById('lr-price').textContent=fmt(cur);
-    document.getElementById('lr-fair').textContent=fmt(fair);
-    document.getElementById('lr-band').textContent=band;
-    document.getElementById('lr-pct').textContent=(pct>=0?'+':'')+pct.toFixed(0)+'%';
-    document.getElementById('lr-badge').textContent=band.toUpperCase();
-    document.getElementById('lr-badge').className='badge '+(cur>fair*2.5?'badge-dn':cur>fair?'badge-neu':'badge-up');
-    document.getElementById('lr-txt').innerHTML=`Precio <strong>${fmt(cur)}</strong> — banda <strong>"${band}"</strong>. Fair Value logarítmico: <strong>${fmt(fair)}</strong>. ${Math.abs(pct).toFixed(0)}% ${pct>=0?'por encima':'por debajo'} del valor justo. Power Law basado en serie histórica completa de BTC.`;
-    new Chart(document.getElementById('lrChart'),{type:'line',data:{labels,datasets:[
-      {label:'Precio BTC',data:priceData,borderColor:'#fff',borderWidth:2,pointRadius:0,fill:false,tension:0.3},
-      {label:'Fair Value',data:fairValues,borderColor:TQ,borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false,tension:0.3},
-      {label:'Techo',data:bandUpper,borderColor:RED,borderWidth:1,borderDash:[3,4],pointRadius:0,fill:false,tension:0.3},
-      {label:'Suelo',data:bandLower,borderColor:'#7fff6f',borderWidth:1,borderDash:[3,4],pointRadius:0,fill:false,tension:0.3}
-    ]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:500},plugins:{legend:{labels:{color:'#3d5560',boxWidth:10,padding:8,font:{size:9}}},tooltip:{backgroundColor:'#111820',borderColor:'#1c2535',borderWidth:1,titleColor:TQ,bodyColor:'#ddeae8',padding:8,callbacks:{label:c=>` ${fmt(c.raw)}`}}},scales:{x:{grid:{color:'rgba(28,37,53,.5)'},ticks:{color:'#3d5560',maxRotation:0,maxTicksLimit:6,font:{size:9}},border:{color:'#1c2535'}},y:{type:'logarithmic',grid:{color:'rgba(28,37,53,.5)'},ticks:{color:'#3d5560',font:{size:9},callback:v=>v>=1000?'$'+(v/1000).toFixed(0)+'k':'$'+v},border:{color:'#1c2535'}}}}});
-  }catch(e){console.error('LR:',e);}
-  loader.classList.add('hide');
-}
-
-// ── DCA ──
-let dcaData=null;
-async function fetchDCAData(){
-  if(dcaData)return dcaData;
-  const r=await fetch('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=1095&precision=2');
-  if(!r.ok)throw new Error('API');
-  dcaData=(await r.json()).prices;return dcaData;
-}
-async function runDCA(){
-  dcaLoaded=true;
-  const loader=document.getElementById('dca-loader');loader.classList.remove('hide');
-  try{
-    const prices=await fetchDCAData();
-    const amount=parseFloat(document.getElementById('dca-amount').value)||100;
-    const freqDays=parseInt(document.getElementById('dca-freq').value)||30;
-    const periodDays=parseInt(document.getElementById('dca-period').value)||730;
-    const now=prices[prices.length-1][0];
-    const filtered=prices.filter(p=>p[0]>=now-periodDays*24*60*60*1000);
-    let totalInvested=0,totalBTC=0,lastPurchase=0;
-    const chartLabels=[],investedLine=[],valueLine=[];
-    filtered.forEach((p,i)=>{
-      const daysSinceLast=i===0?freqDays:(p[0]-lastPurchase)/(1000*60*60*24);
-      if(i===0||daysSinceLast>=freqDays){totalInvested+=amount;totalBTC+=amount/p[1];lastPurchase=p[0];}
-      if(i%Math.max(1,Math.floor(filtered.length/40))===0){
-        chartLabels.push(new Date(p[0]).toLocaleDateString('es',{month:'short',year:'2-digit'}));
-        investedLine.push(totalInvested);valueLine.push(totalBTC*p[1]);
-      }
-    });
-    const curPrice=filtered[filtered.length-1][1],curValue=totalBTC*curPrice;
-    const profit=curValue-totalInvested,pct=(profit/totalInvested*100);
-    const avgPrice=totalInvested/totalBTC;
-    document.getElementById('dca-invested').textContent='€'+totalInvested.toLocaleString('es',{maximumFractionDigits:0});
-    document.getElementById('dca-value').textContent='€'+curValue.toLocaleString('es',{maximumFractionDigits:0});
-    document.getElementById('dca-profit').textContent=(profit>=0?'+':'')+profit.toLocaleString('es',{maximumFractionDigits:0})+'€';
-    document.getElementById('dca-profit').style.color=profit>=0?TQ:RED;
-    document.getElementById('dca-avgprice').textContent=fmt(avgPrice);
-    document.getElementById('dca-badge').textContent=(pct>=0?'+':'')+pct.toFixed(1)+'%';
-    document.getElementById('dca-badge').className='badge '+(pct>=0?'badge-up':'badge-dn');
-    document.getElementById('dca-insight').innerHTML=`DCA de <strong>€${amount}</strong> cada ${freqDays===7?'semana':freqDays===14?'quincena':'mes'}. Invertido: <strong>€${totalInvested.toLocaleString('es')}</strong>. Precio medio: <strong>${fmt(avgPrice)}</strong>. Retorno: <strong>${(pct>=0?'+':'')+pct.toFixed(1)}%</strong>.`;
-    const ctx=document.getElementById('dcaChart');if(ctx._chart){ctx._chart.destroy();ctx._chart=null;}
-    ctx._chart=new Chart(ctx,{type:'line',data:{labels:chartLabels,datasets:[
-      {label:'Valor cartera',data:valueLine,borderColor:TQ,backgroundColor:'rgba(45,212,191,.12)',borderWidth:2,pointRadius:0,fill:true,tension:0.3},
-      {label:'Total invertido',data:investedLine,borderColor:GOLD,borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false,tension:0.3}
-    ]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:500},plugins:{legend:{labels:{color:'#3d5560',boxWidth:10,padding:8,font:{size:9}}},tooltip:{backgroundColor:'#111820',borderColor:'#1c2535',borderWidth:1,titleColor:TQ,bodyColor:'#ddeae8',padding:8,callbacks:{label:c=>` €${c.raw.toLocaleString('es',{maximumFractionDigits:0})}`}}},scales:{x:{grid:{color:'rgba(28,37,53,.5)'},ticks:{color:'#3d5560',maxRotation:0,maxTicksLimit:6,font:{size:9}},border:{color:'#1c2535'}},y:{grid:{color:'rgba(28,37,53,.5)'},ticks:{color:'#3d5560',font:{size:9},callback:v=>'€'+(v/1000).toFixed(0)+'k'},border:{color:'#1c2535'}}}}});
-  }catch(e){console.error('DCA:',e);}
-  loader.classList.add('hide');
-}
-
-// ── RISK MODEL ──
-async function loadRiskModel(){
-  riskLoaded=true;
-  const loader=document.getElementById('risk-loader');loader.classList.remove('hide');
-  try{
-    const r=await fetch('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=365&precision=2');
-    if(!r.ok)throw new Error('API');
-    const d=await r.json();const prices=d.prices.map(p=>p[1]);
-    const cur=prices[prices.length-1],ath=Math.max(...prices);
-    const dd=((cur-ath)/ath*100);
-    const ma200=prices.slice(-200).reduce((a,b)=>a+b,0)/200;
-    const dev=((cur-ma200)/ma200*100);
-    const last30=prices.slice(-30),mean30=last30.reduce((a,b)=>a+b,0)/30;
-    const vol=Math.sqrt(last30.reduce((a,b)=>a+(b-mean30)**2,0)/30)/mean30*100;
-    const score=Math.min(10,(Math.min(10,Math.max(0,(dd+80)/8))*0.4+Math.min(10,Math.max(0,dev/15))*0.35+Math.min(10,Math.max(0,vol/8))*0.25));
-    document.getElementById('risk-score').textContent=score.toFixed(1)+'/10';
-    document.getElementById('risk-score').style.color=score>7?RED:score>4?GOLD:TQ;
-    document.getElementById('risk-dd').textContent=dd.toFixed(1)+'%';
-    document.getElementById('risk-dev').textContent=(dev>=0?'+':'')+dev.toFixed(1)+'%';
-    document.getElementById('risk-vol').textContent=vol.toFixed(1)+'%';
-    document.getElementById('risk-badge').textContent=score>7?'ALTO RIESGO':score>4?'RIESGO MEDIO':'BAJO RIESGO';
-    document.getElementById('risk-badge').className='badge '+(score>7?'badge-dn':score>4?'badge-neu':'badge-up');
-    document.getElementById('risk-label').textContent=score>7?'🔴 ALTO RIESGO':score>4?'🟡 RIESGO MEDIO':'🟢 BAJO RIESGO';
-    document.getElementById('risk-label').style.color=score>7?RED:score>4?GOLD:TQ;
-    document.getElementById('risk-needle').style.left=(score/10*100)+'%';
-    const riskLine=[],riskLabels=[];
-    for(let i=200;i<prices.length;i++){
-      const ma=prices.slice(i-200,i).reduce((a,b)=>a+b,0)/200;
-      const dv=((prices[i]-ma)/ma*100);
-      const sl=prices.slice(Math.max(0,i-30),i),sm=sl.reduce((a,b)=>a+b,0)/sl.length;
-      const sv=Math.sqrt(sl.reduce((a,b)=>a+(b-sm)**2,0)/sl.length)/sm*100;
-      const sd=((prices[i]-Math.max(...prices.slice(0,i+1)))/Math.max(...prices.slice(0,i+1))*100);
-      riskLine.push(Math.min(10,(Math.min(10,Math.max(0,(sd+80)/8))*0.4+Math.min(10,Math.max(0,dv/15))*0.35+Math.min(10,Math.max(0,sv/8))*0.25)));
-    }
-    d.prices.slice(200).forEach((p,i)=>{if(i%Math.max(1,Math.floor((d.prices.length-200)/8))===0)riskLabels.push(new Date(p[0]).toLocaleDateString('es',{month:'short',year:'2-digit'}));else riskLabels.push('');});
-    new Chart(document.getElementById('riskChart'),{type:'line',data:{labels:riskLabels,datasets:[{label:'Risk Score',data:riskLine,borderColor:GOLD,backgroundColor:'rgba(245,197,24,.08)',borderWidth:2,pointRadius:0,fill:true,tension:0.4}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:500},plugins:{legend:{display:false},tooltip:{backgroundColor:'#111820',borderColor:'#1c2535',borderWidth:1,titleColor:GOLD,bodyColor:'#ddeae8',padding:8}},scales:{x:{grid:{color:'rgba(28,37,53,.5)'},ticks:{color:'#3d5560',maxRotation:0,maxTicksLimit:6,font:{size:9}},border:{color:'#1c2535'}},y:{min:0,max:10,grid:{color:'rgba(28,37,53,.5)'},ticks:{color:'#3d5560',font:{size:9}},border:{color:'#1c2535'}}}}});
-  }catch(e){console.error('Risk:',e);}
-  loader.classList.add('hide');
-}
-
-// ── FLIPPENING ──
-async function loadFlippening(){
-  flipLoaded=true;
-  const loader=document.getElementById('flip-loader');loader.classList.remove('hide');
-  try{
-    const [rb,re]=await Promise.all([fetch('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=365&precision=2'),fetch('https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=365&precision=2')]);
-    const [db,de]=await Promise.all([rb.json(),re.json()]);
-    const btcP=db.prices,ethP=de.prices,len=Math.min(btcP.length,ethP.length),step=Math.max(1,Math.floor(len/40));
-    const labels=[],btcLine=[],ethLine=[];
-    for(let i=0;i<len;i+=step){labels.push(new Date(btcP[i][0]).toLocaleDateString('es',{month:'short',year:'2-digit'}));btcLine.push(btcP[i][1]);ethLine.push(ethP[i][1]);}
-    const curBTC=btcP[btcP.length-1][1],curETH=ethP[ethP.length-1][1],ratio=curETH/curBTC;
-    const flipPct=Math.min(99,(ratio*100*2.2)).toFixed(0);
-    document.getElementById('flip-mc').textContent=ratio.toFixed(4);
-    document.getElementById('flip-btc').textContent=fmt(curBTC);
-    document.getElementById('flip-eth').textContent=fmt(curETH);
-    document.getElementById('flip-ratio').textContent=(curBTC/curETH).toFixed(1)+'x';
-    document.getElementById('flip-badge').textContent=flipPct+'% — '+(flipPct>60?'ETH SE ACERCA':'BTC DOMINA');
-    document.getElementById('flip-txt').innerHTML=`Ratio ETH/BTC: <strong>${ratio.toFixed(4)}</strong>. BTC vale <strong>${(curBTC/curETH).toFixed(1)}x</strong> más que ETH. Flippening Index: <strong>${flipPct}%</strong> — necesita 100% para que ETH supere a BTC.`;
-    new Chart(document.getElementById('flipChart'),{type:'line',data:{labels,datasets:[{label:'BTC',data:btcLine,borderColor:'#f7931a',borderWidth:2,pointRadius:0,fill:false,tension:0.3,yAxisID:'y'},{label:'ETH',data:ethLine,borderColor:'#627eea',borderWidth:1.5,pointRadius:0,fill:false,tension:0.3,yAxisID:'y'}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:500},plugins:{legend:{labels:{color:'#3d5560',boxWidth:10,padding:8,font:{size:9}}},tooltip:{backgroundColor:'#111820',borderColor:'#1c2535',borderWidth:1,titleColor:TQ,bodyColor:'#ddeae8',padding:8,callbacks:{label:c=>` ${fmt(c.raw)}`}}},scales:{y:{grid:{color:'rgba(28,37,53,.5)'},ticks:{color:'#3d5560',font:{size:9},callback:v=>v>=1000?'$'+(v/1000).toFixed(0)+'k':'$'+v},border:{color:'#1c2535'}},x:{grid:{color:'rgba(28,37,53,.5)'},ticks:{color:'#3d5560',maxRotation:0,maxTicksLimit:6,font:{size:9}},border:{color:'#1c2535'}}}}});
-  }catch(e){console.error('Flip:',e);}
-  loader.classList.add('hide');
-}
-
-// ── MPT ──
-function buildMPT(){
-  const ctx=document.getElementById('mptChart');if(ctx._chart)return;
-  const frontier=Array.from({length:20},(_,i)=>({x:15+i*3,y:-5+Math.sqrt((15+i*3)*8)+Math.random()*2}));
-  const portfolios=Array.from({length:80},()=>({x:15+Math.random()*50,y:-10+Math.random()*60}));
-  ctx._chart=new Chart(ctx,{type:'scatter',data:{datasets:[{label:'Carteras aleatorias',data:portfolios,backgroundColor:'rgba(61,85,96,.5)',pointRadius:3},{label:'Frontera eficiente',data:frontier,backgroundColor:TQ,pointRadius:5,showLine:true,borderColor:TQ,borderWidth:1.5,tension:0.4},{label:'Óptima',data:[{x:32,y:38}],backgroundColor:'#fff',pointRadius:8,pointStyle:'star'}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:500},plugins:{legend:{labels:{color:'#3d5560',boxWidth:10,padding:8,font:{size:9}}},tooltip:{backgroundColor:'#111820',borderColor:'#1c2535',borderWidth:1,titleColor:TQ,bodyColor:'#ddeae8',padding:8}},scales:{x:{title:{display:true,text:'Riesgo %',color:'#3d5560',font:{size:9}},grid:{color:'rgba(28,37,53,.5)'},ticks:{color:'#3d5560',font:{size:9}},border:{color:'#1c2535'}},y:{title:{display:true,text:'Retorno %',color:'#3d5560',font:{size:9}},grid:{color:'rgba(28,37,53,.5)'},ticks:{color:'#3d5560',font:{size:9}},border:{color:'#1c2535'}}}}});
-}
-
-// ── MACRO ──
-function buildMacro(){
-  const ctx1=document.getElementById('macroChart');if(ctx1._chart)return;
-  const ctx2=document.getElementById('btcRatesChart');
-  const months=['Ene 24','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic','Ene 25','Feb','Mar','Abr'];
-  const rates=[5.33,5.33,5.33,5.33,5.33,5.33,5.33,5.33,4.83,4.58,4.58,4.33,4.33,4.33,4.33,4.25];
-  const cpi=[3.1,3.2,3.5,3.4,3.3,3.0,2.9,2.5,2.4,2.6,2.7,2.9,3.0,2.8,2.8,3.0];
-  ctx1._chart=new Chart(ctx1,{type:'line',data:{labels:months,datasets:[{label:'Fed Rate %',data:rates,borderColor:RED,borderWidth:2,pointRadius:0,fill:false,tension:0.3},{label:'CPI %',data:cpi,borderColor:GOLD,borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false,tension:0.3}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:500},plugins:{legend:{labels:{color:'#3d5560',boxWidth:10,padding:8,font:{size:9}}},tooltip:{backgroundColor:'#111820',borderColor:'#1c2535',borderWidth:1,titleColor:TQ,bodyColor:'#ddeae8',padding:8}},scales:{x:{grid:{color:'rgba(28,37,53,.5)'},ticks:{color:'#3d5560',maxRotation:0,maxTicksLimit:6,font:{size:9}},border:{color:'#1c2535'}},y:{min:0,max:7,grid:{color:'rgba(28,37,53,.5)'},ticks:{color:'#3d5560',font:{size:9},callback:v=>v+'%'},border:{color:'#1c2535'}}}}});
-  ctx2._chart=new Chart(ctx2,{type:'line',data:{labels:months,datasets:[{label:'BTC norm.',data:[62,72,65,60,68,72,78,95,82,68,76,80,90,75,80,84],borderColor:TQ,borderWidth:2,pointRadius:0,fill:false,tension:0.3},{label:'Fed (inv.)',data:rates.map(v=>((5.33-v)/5.33+0.5)*80),borderColor:RED,borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false,tension:0.3}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:500},plugins:{legend:{labels:{color:'#3d5560',boxWidth:10,padding:8,font:{size:9}}},tooltip:{backgroundColor:'#111820',borderColor:'#1c2535',borderWidth:1,titleColor:TQ,bodyColor:'#ddeae8',padding:8}},scales:{x:{grid:{color:'rgba(28,37,53,.5)'},ticks:{color:'#3d5560',maxRotation:0,maxTicksLimit:6,font:{size:9}},border:{color:'#1c2535'}},y:{grid:{color:'rgba(28,37,53,.5)'},ticks:{color:'#3d5560',font:{size:9}},border:{color:'#1c2535'}}}}});
-}
-
-// ── EXIT STRATEGY ──
-function buildExitStrategy(){
-  const entry=parseFloat(document.getElementById('exit-entry').value)||50000;
-  const levels=[{mult:1.5,pct:10},{mult:2,pct:20},{mult:3,pct:20},{mult:5,pct:25},{mult:10,pct:15},{mult:20,pct:10}];
-  document.getElementById('exit-levels').innerHTML=levels.map(l=>`<div class="exit-level"><span class="exit-pct">${l.pct}%</span><div class="exit-bar-wrap"><div class="exit-bar-fill" style="width:${l.pct*3}%"></div></div><span class="exit-price">${fmt(entry*l.mult)}</span><span class="exit-roi">+${((l.mult-1)*100).toFixed(0)}%</span></div>`).join('');
-  const ctx=document.getElementById('exitChart');if(ctx._chart){ctx._chart.destroy();ctx._chart=null;}
-  ctx._chart=new Chart(ctx,{type:'bar',data:{labels:levels.map(l=>l.mult+'x'),datasets:[{label:'% a vender',data:levels.map(l=>l.pct),backgroundColor:levels.map((_,i)=>`hsl(${160+i*20},70%,50%)`),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:500},plugins:{legend:{display:false},tooltip:{backgroundColor:'#111820',borderColor:'#1c2535',borderWidth:1,titleColor:TQ,bodyColor:'#ddeae8',padding:8,callbacks:{label:c=>` Vender ${c.raw}% en ${fmt(entry*levels[c.dataIndex].mult)}`}}},scales:{x:{grid:{display:false},ticks:{color:'#3d5560',font:{size:9}},border:{color:'#1c2535'}},y:{max:35,grid:{color:'rgba(28,37,53,.5)'},ticks:{color:'#3d5560',font:{size:9},callback:v=>v+'%'},border:{color:'#1c2535'}}}}});
-}
-
-// ── ROI AFTER BOTTOM ──
-async function loadROI(){
-  roiLoaded=true;
-  const loader=document.getElementById('roi-loader');loader.classList.remove('hide');
-  try{
-    const coins=['bitcoin','ethereum','solana','binancecoin','ripple'];
-    const colors=['#f7931a','#627eea','#9945ff','#f5c518','#00AAE4'];
-    const names=['BTC','ETH','SOL','BNB','XRP'];
-    const results=await Promise.all(coins.map(c=>fetch(`https://api.coingecko.com/api/v3/coins/${c}/market_chart?vs_currency=usd&days=730&precision=2`).then(r=>r.json())));
-    const rois=results.map((d,i)=>{const p=d.prices.map(x=>x[1]);return{name:names[i],roi:((p[p.length-1]-Math.min(...p))/Math.min(...p)*100),color:colors[i]};});
-    rois.sort((a,b)=>b.roi-a.roi);
-    document.getElementById('roi-badge').textContent=`BTC +${rois.find(r=>r.name==='BTC')?.roi.toFixed(0)}%`;
-    document.getElementById('roi-txt').innerHTML=`Retorno desde mínimos del ciclo (2 años). <strong>${rois[0].name}</strong> lidera con <strong>+${rois[0].roi.toFixed(0)}%</strong>. Datos reales CoinGecko.`;
-    new Chart(document.getElementById('roiChart'),{type:'bar',data:{labels:rois.map(r=>r.name),datasets:[{label:'ROI',data:rois.map(r=>r.roi),backgroundColor:rois.map(r=>r.color),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:600},indexAxis:'y',plugins:{legend:{display:false},tooltip:{backgroundColor:'#111820',borderColor:'#1c2535',borderWidth:1,titleColor:TQ,bodyColor:'#ddeae8',padding:8,callbacks:{label:c=>` +${c.raw.toFixed(0)}%`}}},scales:{x:{grid:{color:'rgba(28,37,53,.5)'},ticks:{color:'#3d5560',font:{size:9},callback:v=>'+'+v.toFixed(0)+'%'},border:{color:'#1c2535'}},y:{grid:{display:false},ticks:{color:'#ddeae8',font:{size:10,weight:'500'}},border:{color:'#1c2535'}}}}});
-  }catch(e){console.error('ROI:',e);}
-  loader.classList.add('hide');
-}
-
-// Auto-load log regression when models tab is active
-loadLogRegression();
+loadTicker();
+setInterval(loadTicker,60000);
+loadMetric('btc-price');
 </script>
 </body>
 </html>
